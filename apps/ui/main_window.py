@@ -17,6 +17,7 @@ from PySide6.QtWidgets import (
     QAbstractItemView,
     QMessageBox,
     QWizard,
+    QDialog,
 )
 
 from apps.core.desktop_writer import (
@@ -31,7 +32,7 @@ from apps.core.game_store import (
 )
 
 from apps.ui.add_game_wizard import AddGameWizard
-
+from apps.ui.edit_game_dialog import EditGameDialog
 
 # --- Importok vége
 
@@ -80,6 +81,9 @@ class MainWindow(QMainWindow):
         new_game_action.triggered.connect(self._open_add_game_dialog)
 
         file_menu.addSeparator()
+
+        edit_game_action = file_menu.addAction("Szerkesztés")
+        edit_game_action.triggered.connect(self._edit_selected_game)
 
         exit_action = file_menu.addAction("Kilépés")
         exit_action.triggered.connect(self.close)
@@ -434,3 +438,54 @@ class MainWindow(QMainWindow):
 
 
 
+
+
+    def _edit_selected_game(self) -> None:
+        game = self._selected_game()
+
+        if game is None:
+            QMessageBox.information(
+                self,
+                "Nincs kijelölt játék",
+                "Előbb jelölj ki egy játékot a szerkesztéshez.",
+            )
+            return
+
+        dialog = EditGameDialog(game, self)
+
+        if dialog.exec() != QDialog.DialogCode.Accepted:
+            return
+
+        updated_game = dialog.data()
+
+        if dialog.should_create_desktop_icon():
+            desktop_icon_path = create_desktop_icon_launcher(
+                name=updated_game["name"],
+                executable_path=updated_game["executable_path"],
+                icon_path=updated_game.get("icon_path", ""),
+                launcher_type=updated_game.get("type", "native"),
+            )
+
+            updated_game["desktop_icon_path"] = str(desktop_icon_path)
+
+            QMessageBox.information(
+                self,
+                "Asztali ikon létrehozva",
+                f"Az asztali ikon elkészült:\n\n{desktop_icon_path}",
+            )
+
+
+
+
+        self._update_game(game, updated_game)
+
+        self._reload_games()
+
+
+
+
+    # Mentés:
+    def _update_game(self, old_game: dict, updated_game: dict) -> None:
+        old_game.clear()
+        old_game.update(updated_game)
+        save_games(self.games)
