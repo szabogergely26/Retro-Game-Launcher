@@ -13,10 +13,22 @@ from PySide6.QtWidgets import (
     QListWidget,
     QListWidgetItem,
     QMessageBox,
+    QWizard,
 )
 
-from apps.core.game_store import load_games, delete_game_by_desktop_path
-from apps.ui.add_game_dialog import AddGameDialog
+from apps.core.desktop_writer import (
+    create_menu_desktop_launcher,
+    create_desktop_icon_launcher,
+
+)
+
+from apps.core.game_store import (
+    load_games,
+    save_games,
+    delete_game_by_desktop_path
+)
+
+from apps.ui.add_game_wizard import AddGameWizard
 
 
 class MainWindow(QMainWindow):
@@ -103,13 +115,36 @@ class MainWindow(QMainWindow):
         """
         Megnyitja az új játék hozzáadása ablakot.
         """
+        wizard = AddGameWizard(self)
 
-        dialog = AddGameDialog(self)
-        dialog.exec()
+        if wizard.exec() != QWizard.Accepted:
+            return
 
-         # A dialógus bezárása után újratöltjük a játéklistát.
+        game_data = wizard.get_game_data()
+
+        if wizard.should_create_menu_icon():
+            desktop_path = create_menu_desktop_launcher(
+                name=game_data["name"],
+                executable_path=game_data["executable_path"],
+                icon_path=game_data["icon_path"],
+                launcher_type=game_data["type"],
+            )
+
+            game_data["desktop_path"] = str(desktop_path)
+
+        if wizard.should_create_desktop_icon():
+            create_desktop_icon_launcher(
+                name=game_data["name"],
+                executable_path=game_data["executable_path"],
+                icon_path=game_data["icon_path"],
+                launcher_type=game_data["type"],
+            )
+
+        games = load_games()
+        games.append(game_data)
+        save_games(games)
+
         self._reload_games()
-
 
 
 
@@ -238,6 +273,8 @@ class MainWindow(QMainWindow):
 
         game = item.data(1000)
 
+        print("DEBUG GAME:", game)
+
         if not game:
             return
 
@@ -269,13 +306,22 @@ class MainWindow(QMainWindow):
             subprocess.Popen(["gtk-launch", Path(desktop_path).stem])
             return
 
-        # Ha nincs .desktop fájl, de van indítófájl, azt próbáljuk futtatni.
         if executable_path and Path(executable_path).exists():
+            if game_type == "dosbox":
+                subprocess.Popen(["dosbox", executable_path])
+            return
+
+        if game_type == "wine":
+            subprocess.Popen(["wine", executable_path])
+            return
+
+        if game_type == "native":
             subprocess.Popen([executable_path])
             return
 
         QMessageBox.warning(
             self,
-            "Nem található indítható fájl",
-            "Nem található .desktop fájl vagy érvényes indítófájl ehhez a játékhoz."
+            "Ismeretlen indítási típus",
+            f"Nem támogatott indítási típus:\n\n{game_type}"
         )
+        return

@@ -48,17 +48,19 @@ def build_exec_command(executable_path: str, launcher_type: str) -> str:
     """
 
     executable_path = executable_path.strip()
+    launcher_type = launcher_type.strip().lower()
 
-    if launcher_type == "DOSBox":
+    if launcher_type == "dosbox":
         return f"dosbox {_quote_desktop_arg(executable_path)} -exit"
 
-    if launcher_type == "Wine":
+    if launcher_type == "wine":
         return f"wine {_quote_desktop_arg(executable_path)}"
 
-    if launcher_type == "Egyedi parancs":
+    if launcher_type == "custom":
         return executable_path
 
     return _quote_desktop_arg(executable_path)
+
 
 
 def create_menu_desktop_launcher(
@@ -111,7 +113,58 @@ def create_menu_desktop_launcher(
         f"Exec={exec_command}",
         "Terminal=false",
         "Categories=Game;Emulator;",
-        "StartupNotify=false",
+        "NoDisplay=false",
+        "StartupNotify=true",
+        "X-KDE-SubstituteUID=false",
+        "X-KDE-Username=",
+    ]
+
+    if clean_icon:
+        desktop_lines.append(f"Icon={clean_icon}")
+
+    desktop_content = "\n".join(desktop_lines) + "\n"
+
+    desktop_path.write_text(desktop_content, encoding="utf-8")
+    os.chmod(desktop_path, 0o755)
+
+    return desktop_path
+
+
+
+
+
+def create_desktop_icon_launcher(
+    name: str,
+    executable_path: str,
+    icon_path: str,
+    launcher_type: str,
+) -> Path:
+    """
+    .desktop indító létrehozása a felhasználó Asztal mappájába.
+    """
+
+    desktop_dir = Path.home() / "Asztal"
+
+    if not desktop_dir.exists():
+        desktop_dir = Path.home() / "Desktop"
+
+    desktop_dir.mkdir(parents=True, exist_ok=True)
+
+    clean_name = name.strip()
+    clean_icon = icon_path.strip()
+    exec_command = build_exec_command(executable_path, launcher_type)
+
+    desktop_filename = f"{_slugify_name(clean_name)}.desktop"
+    desktop_path = desktop_dir / desktop_filename
+
+    desktop_lines = [
+        "[Desktop Entry]",
+        "Type=Application",
+        f"Name={clean_name}",
+        f"Exec={exec_command}",
+        "Terminal=false",
+        "NoDisplay=false",
+        "StartupNotify=true",
     ]
 
     if clean_icon:
