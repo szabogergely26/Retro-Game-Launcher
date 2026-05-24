@@ -79,7 +79,8 @@ class MainWindow(QMainWindow):
         self.empty_label.setStyleSheet("font-size: 15px;")
 
         add_button = QPushButton("Új játék hozzáadása")
-        add_button.setMinimumHeight(38)
+        add_button.setMinimumHeight(20)
+        add_button.setFixedWidth(150)
         add_button.clicked.connect(self._open_add_game_dialog)
 
         games_title = QLabel("Felvett játékok")
@@ -94,8 +95,9 @@ class MainWindow(QMainWindow):
         # Dupla kattintásra elindítjuk a kiválasztott játékot.
         self.games_list.itemDoubleClicked.connect(self._launch_selected_game)
 
-        self.delete_button = QPushButton("Kijelölt játék eltávolítása")
-        self.delete_button.setMinimumHeight(34)
+        self.delete_button = QPushButton("Eltávolítás")
+        self.delete_button.setMinimumHeight(20)
+        self.delete_button.setFixedWidth(180)
         self.delete_button.clicked.connect(self._delete_selected_game)
 
         layout.addWidget(title_label)
@@ -325,3 +327,6 @@ class MainWindow(QMainWindow):
             f"Nem támogatott indítási típus:\n\n{game_type}"
         )
         return
+
+
+
