@@ -78,8 +78,7 @@ Retro-Game-Launcher/
 
 ## Következő tervezett lépések:
 
-Fájl → Új játék menüpont létrehozása
-a jelenlegi űrlap áthelyezése külön QDialog ablakba
+
 főablak átalakítása játékkártyás nézetté
 játékadatok mentése helyi adatfájlba
 kártyára kattintva játék indítása
@@ -93,12 +92,18 @@ később hover effektek és sötét téma
 A cél nem egy teljes Lutris-klón, hanem egy egyszerű, átlátható, saját használatra kényelmes retro játék indító.
 
 
-## Első körben a fő cél:
 
-Név + indítófájl + ikon + típus → működő Linux menüindító
+## Következő lépések
 
-## Később:
+- A játéklista feletti felirat eltüntetése ha van már felvett játék
+- EditDialog meglévő játék szerkesztéséhez
+- .desktop újragenerálása módosítás után
+- Új játék hozzáadása Varázsló ablakos, indítóikon létrehozása független gomb legyen
 
-játék-kártyák → kattintásra indítás
+## Későbbi ötletek
 
+- Storage/fstab ellenőrzés
+- Ikonkezelés szépítése
+- Játék kategória integráció
+- Egyszerűbb Lutris-szerű nézet
 
