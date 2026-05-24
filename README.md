@@ -78,12 +78,12 @@ Retro-Game-Launcher/
 
 ## Következő tervezett lépések:
 
-
-főablak átalakítása játékkártyás nézetté
-játékadatok mentése helyi adatfájlba
-kártyára kattintva játék indítása
-indítóikon létrehozása külön menübe vagy asztalra
-később hover effektek és sötét téma
+- Statusbar
+- főablak átalakítása játékkártyás nézetté
+- játékadatok mentése helyi adatfájlba
+- kártyára kattintva játék indítása
+- indítóikon létrehozása külön menübe vagy asztalra
+- később hover effektek és sötét téma
 
 
 
@@ -95,7 +95,7 @@ A cél nem egy teljes Lutris-klón, hanem egy egyszerű, átlátható, saját ha
 
 ## Következő lépések
 
-- A játéklista feletti felirat eltüntetése ha van már felvett játék
+
 - EditDialog meglévő játék szerkesztéséhez
 - .desktop újragenerálása módosítás után
 - Új játék hozzáadása Varázsló ablakos, indítóikon létrehozása független gomb legyen

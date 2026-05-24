@@ -63,8 +63,8 @@ class MainWindow(QMainWindow):
         title_label = QLabel("Retro Game Launcher")
         title_label.setStyleSheet("font-size: 26px; font-weight: bold;")
 
-        empty_label = QLabel("Még nincs felvett játék.")
-        empty_label.setStyleSheet("font-size: 15px;")
+        self.empty_label = QLabel("Még nincs felvett játék.")
+        self.empty_label.setStyleSheet("font-size: 15px;")
 
         add_button = QPushButton("Új játék hozzáadása")
         add_button.setMinimumHeight(38)
@@ -87,7 +87,7 @@ class MainWindow(QMainWindow):
         self.delete_button.clicked.connect(self._delete_selected_game)
 
         layout.addWidget(title_label)
-        layout.addWidget(empty_label)
+        layout.addWidget(self.empty_label)
         layout.addWidget(add_button)
         layout.addWidget(self.games_list)
         layout.addWidget(self.delete_button)
@@ -199,9 +199,9 @@ class MainWindow(QMainWindow):
 
         games = load_games()
 
+        self.empty_label.setVisible(not games)
+
         if not games:
-            empty_item = QListWidgetItem("Még nincs felvett játék.")
-            self.games_list.addItem(empty_item)
             return
 
         for game in games:
