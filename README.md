@@ -95,13 +95,6 @@ A cél nem egy teljes Lutris-klón, hanem egy egyszerű, átlátható, saját ha
 
 ## Következő lépések
 
-- Új játék hozzáadása QWizard alapú varázslóval:
-  - 1. oldal: bevezető
-  - 2. oldal: játékadatok megadása
-  - 3. oldal: befejezés
-  - befejezéskor a játék mindig bekerül a launcher listába
-  - opcionális checkbox: indítóikon létrehozása az alkalmazásmenübe
-
 - EditDialog meglévő játék szerkesztéséhez
 - .desktop újragenerálása módosítás után
 

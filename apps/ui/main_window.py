@@ -1,6 +1,7 @@
 # apps/ui/main_window.py
 # ----------------------------
 
+# --- Importok:
 import subprocess
 from pathlib import Path
 
@@ -10,8 +11,10 @@ from PySide6.QtWidgets import (
     QPushButton,
     QVBoxLayout,
     QWidget,
-    QListWidget,
-    QListWidgetItem,
+    QTableWidget,
+    QTableWidgetItem,
+    QHeaderView,
+    QAbstractItemView,
     QMessageBox,
     QWizard,
 )
@@ -24,11 +27,30 @@ from apps.core.desktop_writer import (
 
 from apps.core.game_store import (
     load_games,
-    save_games,
-    delete_game_by_desktop_path
+    save_games
 )
 
 from apps.ui.add_game_wizard import AddGameWizard
+
+
+# --- Importok vége
+
+
+GAME_TYPE_LABELS = {
+    "dosbox": "DOSBox",
+    "wine": "Wine",
+    "native": "Natív Linux",
+    "linux": "Natív Linux",
+}
+
+
+# --- Segédfüggvény:
+
+def game_type_label(game_type: str) -> str:
+    return GAME_TYPE_LABELS.get(str(game_type).lower(), "Ismeretlen típus")
+
+
+
 
 
 class MainWindow(QMainWindow):
@@ -86,14 +108,24 @@ class MainWindow(QMainWindow):
         games_title = QLabel("Felvett játékok")
         games_title.setStyleSheet("font-size: 18px; font-weight: bold;")
 
-        # Itt hozzuk létre a játéklistát.
-        # Fontos: ennek meg kell történnie azelőtt,
-        # hogy layout.addWidget(self.games_list) lefutna.
-        self.games_list = QListWidget()
-        self.games_list.setMinimumHeight(220)
+        self.games_table = QTableWidget()
+        self.games_table.setColumnCount(3)
+        self.games_table.setHorizontalHeaderLabels(["Név", "Típus", "Művelet"])
+        self.games_table.setMinimumHeight(220)
 
-        # Dupla kattintásra elindítjuk a kiválasztott játékot.
-        self.games_list.itemDoubleClicked.connect(self._launch_selected_game)
+        self.games_table.verticalHeader().setVisible(False)
+        self.games_table.setEditTriggers(QAbstractItemView.NoEditTriggers)
+        self.games_table.setSelectionBehavior(QAbstractItemView.SelectRows)
+        self.games_table.setSelectionMode(QAbstractItemView.SingleSelection)
+
+        header = self.games_table.horizontalHeader()
+        header.setSectionResizeMode(0, QHeaderView.Stretch)
+        header.setSectionResizeMode(1, QHeaderView.ResizeToContents)
+        header.setSectionResizeMode(2, QHeaderView.ResizeToContents)
+
+        self.games_table.cellDoubleClicked.connect(
+            lambda row, _column: self._launch_game_from_row(row)
+        )
 
         self.delete_button = QPushButton("Eltávolítás")
         self.delete_button.setMinimumHeight(20)
@@ -103,7 +135,8 @@ class MainWindow(QMainWindow):
         layout.addWidget(title_label)
         layout.addWidget(self.empty_label)
         layout.addWidget(add_button)
-        layout.addWidget(self.games_list)
+        layout.addWidget(games_title)
+        layout.addWidget(self.games_table)
         layout.addWidget(self.delete_button)
         layout.addStretch()
 
@@ -135,12 +168,14 @@ class MainWindow(QMainWindow):
             game_data["desktop_path"] = str(desktop_path)
 
         if wizard.should_create_desktop_icon():
-            create_desktop_icon_launcher(
+            desktop_icon_path = create_desktop_icon_launcher(
                 name=game_data["name"],
                 executable_path=game_data["executable_path"],
                 icon_path=game_data["icon_path"],
                 launcher_type=game_data["type"],
             )
+
+            game_data["desktop_icon_path"] = str(desktop_icon_path)
 
         games = load_games()
         games.append(game_data)
@@ -150,23 +185,65 @@ class MainWindow(QMainWindow):
 
 
 
+    def _selected_game(self):
+        """
+        Visszaadja a táblázatban kijelölt játék adatát.
+        """
+
+        row = self.games_table.currentRow()
+
+        if row < 0:
+            return None
+
+        if row >= len(self.games):
+            return None
+
+        return self.games[row]
+
+
+    def _delete_desktop_file(self, file_path, error_title):
+        """
+        Töröl egy .desktop fájlt, ha létezik.
+        """
+
+        if not file_path:
+            return True
+
+        desktop_file = Path(file_path)
+
+        if not desktop_file.exists():
+            return True
+
+        try:
+            desktop_file.unlink()
+            return True
+
+        except OSError as error:
+            QMessageBox.warning(
+                self,
+                error_title,
+                f"A .desktop fájlt nem sikerült törölni:\n\n{error}"
+            )
+        return False
+
+
+
+
     def _delete_selected_game(self):
         """
         Eltávolítja a kijelölt játékot a launcher listából,
         és törli a hozzá tartozó .desktop menübejegyzést is.
         """
 
-        item = self.games_list.currentItem()
+        game = self._selected_game()
 
-        if item is None:
+        if game is None:
             QMessageBox.information(
                 self,
                 "Nincs kijelölés",
                 "Nincs kijelölt játék."
             )
             return
-
-        game = item.data(1000)
 
         if not game:
             QMessageBox.information(
@@ -178,6 +255,7 @@ class MainWindow(QMainWindow):
 
         name = game.get("name", "Névtelen játék")
         desktop_path = game.get("desktop_path", "")
+        desktop_icon_path = game.get("desktop_icon_path", "")
 
         answer = QMessageBox.question(
             self,
@@ -207,8 +285,33 @@ class MainWindow(QMainWindow):
                     )
                     return
 
-        # A játék törlése a games.json-ból.
-        delete_game_by_desktop_path(desktop_path)
+        row = self.games_table.currentRow()
+
+        if row < 0 or row >= len(self.games):
+            QMessageBox.information(
+                self,
+                "Nincs kijelölés",
+                "Nincs kijelölt játék."
+            )
+            return
+
+        # Menübejegyzés törlése, ha készült.
+        if not self._delete_desktop_file(
+            desktop_path,
+            "Menübejegyzés törlési hiba",
+        ):
+            return
+
+        # Asztali ikon törlése, ha készült.
+        if not self._delete_desktop_file(
+            desktop_icon_path,
+            "Asztali ikon törlési hiba",
+        ):
+            return
+
+        # A játék törlése a launcher saját listájából.
+        self.games.pop(row)
+        save_games(self.games)
 
         # Menük frissítése Linux alatt.
         subprocess.run(
@@ -227,53 +330,59 @@ class MainWindow(QMainWindow):
 
 
 
+        self._reload_games()
+
+
     def _reload_games(self):
         """
         Újratölti és megjeleníti a felvett játékokat.
         """
 
-        self.games_list.clear()
+        self.games = load_games()
 
-        games = load_games()
+        self.games_table.setRowCount(0)
 
-        self.empty_label.setVisible(not games)
+        self.empty_label.setVisible(len(self.games) == 0)
+        self.games_table.setVisible(len(self.games) > 0)
+        self.delete_button.setEnabled(len(self.games) > 0)
 
-        if not games:
+        for game in self.games:
+            row = self.games_table.rowCount()
+            self.games_table.insertRow(row)
+
+            name = game.get("name", "Névtelen játék")
+            game_type = game.get("type", "")
+
+            name_item = QTableWidgetItem(name)
+            type_item = QTableWidgetItem(game_type_label(game_type))
+
+            launch_button = QPushButton("Indítás")
+            launch_button.setFixedWidth(80)
+            launch_button.clicked.connect(
+                lambda checked=False, selected_game=game: self._launch_game(selected_game)
+            )
+
+            self.games_table.setItem(row, 0, name_item)
+            self.games_table.setItem(row, 1, type_item)
+            self.games_table.setCellWidget(row, 2, launch_button)
+
+
+
+    def _launch_game_from_row(self, row):
+        """
+        Elindítja a táblázat adott sorában lévő játékot.
+        """
+
+        if row < 0 or row >= len(self.games):
             return
 
-        for game in games:
-            name = game.get("name", "Névtelen játék")
-            launcher_type = game.get("launcher_type", "Ismeretlen típus")
-            executable_path = game.get("executable_path", "")
-
-            item_text = f"{name}    |    {launcher_type}"
-
-            if executable_path:
-                item_text += f"\n{executable_path}"
-
-            item = QListWidgetItem(item_text)
-
-            # Az adott listaelemhez eltároljuk a teljes játék-adatot.
-            # Így dupla kattintáskor vissza tudjuk olvasni.
-            item.setData(1000, game)
-
-            self.games_list.addItem(item)
+        self._launch_game(self.games[row])
 
 
-
-
-    def _launch_selected_game(self, item):
+    def _launch_game(self, game):
         """
-        Elindítja a kiválasztott játékot.
-
-        Első körben ellenőrizzük, hogy nem DOS-os fájlt próbálunk-e
-        natív Linux programként indítani.
-
-        Ezután a .desktop fájlt próbáljuk indítani.
-        Ha az nincs, akkor az executable_path alapján próbálkozunk.
+        Elindítja a megadott játékot.
         """
-
-        game = item.data(1000)
 
         print("DEBUG GAME:", game)
 
@@ -283,13 +392,10 @@ class MainWindow(QMainWindow):
         desktop_path = game.get("desktop_path", "")
         executable_path = game.get("executable_path", "")
 
-        # A játék típusa: például "native" vagy "dosbox".
         game_type = game.get("type", "native")
 
-        # DOS-os fájlkiterjesztések, amelyeket nem akarunk natív Linux programként futtatni.
         dos_extensions = (".exe", ".bat", ".com")
 
-        # Ha DOS-os fájlt próbálnánk natívként indítani, megállunk és szólunk.
         if (
             game_type == "native"
             and executable_path
@@ -303,7 +409,6 @@ class MainWindow(QMainWindow):
             )
             return
 
-        # Ha van .desktop fájl, azt indítjuk.
         if desktop_path and Path(desktop_path).exists():
             subprocess.Popen(["gtk-launch", Path(desktop_path).stem])
             return
@@ -311,22 +416,21 @@ class MainWindow(QMainWindow):
         if executable_path and Path(executable_path).exists():
             if game_type == "dosbox":
                 subprocess.Popen(["dosbox", executable_path])
-            return
+                return
 
-        if game_type == "wine":
-            subprocess.Popen(["wine", executable_path])
-            return
+            if game_type == "wine":
+                subprocess.Popen(["wine", executable_path])
+                return
 
-        if game_type == "native":
-            subprocess.Popen([executable_path])
-            return
+            if game_type == "native":
+                subprocess.Popen([executable_path])
+                return
 
         QMessageBox.warning(
             self,
             "Ismeretlen indítási típus",
-            f"Nem támogatott indítási típus:\n\n{game_type}"
+            f"Nem támogatott vagy nem indítható játék:\n\n{game_type}"
         )
-        return
 
 
 
