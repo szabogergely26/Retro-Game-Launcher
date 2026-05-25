@@ -104,6 +104,7 @@ class MainWindow(QMainWindow):
         self.empty_label = QLabel("Még nincs felvett játék.")
         self.empty_label.setStyleSheet("font-size: 15px;")
 
+
         add_button = QPushButton("Új játék hozzáadása")
         add_button.setMinimumHeight(20)
         add_button.setFixedWidth(150)
@@ -111,6 +112,8 @@ class MainWindow(QMainWindow):
 
         games_title = QLabel("Felvett játékok")
         games_title.setStyleSheet("font-size: 18px; font-weight: bold;")
+        games_title = QLabel("Teljes képernyő: ALT+Enter")
+        games_title.setStyleSheet("font-size: 18px;")
 
         self.games_table = QTableWidget()
         self.games_table.setColumnCount(3)

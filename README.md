@@ -78,7 +78,7 @@ Retro-Game-Launcher/
 
 ## Következő tervezett lépések:
 
-- Statusbar
+- Statusbar : hány játék | Összméret   | Kijelölt játék neve, mérete -össméret nem látszik
 - főablak átalakítása játékkártyás nézetté
 - játékadatok mentése helyi adatfájlba
 - kártyára kattintva játék indítása
