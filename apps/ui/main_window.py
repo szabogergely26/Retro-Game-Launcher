@@ -9,6 +9,7 @@ from PySide6.QtWidgets import (
     QLabel,
     QMainWindow,
     QPushButton,
+    QHBoxLayout,
     QVBoxLayout,
     QWidget,
     QTableWidget,
@@ -52,8 +53,6 @@ def game_type_label(game_type: str) -> str:
 
 
 
-
-
 class MainWindow(QMainWindow):
     """
     A Retro Game Launcher főablaka.
@@ -66,6 +65,7 @@ class MainWindow(QMainWindow):
         self.resize(760, 480)
 
         self._build_menu()
+        self._build_status_bar()
         self._build_central_view()
 
     def _build_menu(self):
@@ -112,8 +112,12 @@ class MainWindow(QMainWindow):
 
         games_title = QLabel("Felvett játékok")
         games_title.setStyleSheet("font-size: 18px; font-weight: bold;")
-        games_title = QLabel("Teljes képernyő: ALT+Enter")
-        games_title.setStyleSheet("font-size: 18px;")
+
+        fullscreen_hint = QLabel("Teljes képernyő: ALT+Enter")
+        fullscreen_hint.setStyleSheet("font-size: 12px;")
+
+        exit_hint = QLabel("Kilépéshez írd be: exit")
+        exit_hint.setStyleSheet("font-size: 12px;")
 
         self.games_table = QTableWidget()
         self.games_table.setColumnCount(3)
@@ -130,9 +134,14 @@ class MainWindow(QMainWindow):
         header.setSectionResizeMode(1, QHeaderView.ResizeToContents)
         header.setSectionResizeMode(2, QHeaderView.ResizeToContents)
 
+
+        # Dupla kattintás:
         self.games_table.cellDoubleClicked.connect(
             lambda row, _column: self._launch_game_from_row(row)
         )
+
+        # kattintásra megjelenik az aktuális infó:
+        self.games_table.itemSelectionChanged.connect(self._update_status_bar)
 
         self.delete_button = QPushButton("Eltávolítás")
         self.delete_button.setMinimumHeight(20)
@@ -141,7 +150,25 @@ class MainWindow(QMainWindow):
 
         layout.addWidget(title_label)
         layout.addWidget(self.empty_label)
-        layout.addWidget(add_button)
+
+
+        hint_layout = QVBoxLayout()
+        # hint_layout.setContentsMargins(0, 0, 0, 0) bal, felül, jobb, alul
+        hint_layout.setContentsMargins(80, 0, 0, 0)
+        hint_layout.setSpacing(1)
+        hint_layout.addWidget(fullscreen_hint)
+        hint_layout.addWidget(exit_hint)
+
+        top_layout = QHBoxLayout()
+        top_layout.setContentsMargins(0, 0, 0, 0)
+        top_layout.setSpacing(12)
+        top_layout.addWidget(add_button)
+        top_layout.addLayout(hint_layout)
+        top_layout.addStretch()
+
+
+        layout.addLayout(top_layout)
+
         layout.addWidget(games_title)
         layout.addWidget(self.games_table)
         layout.addWidget(self.delete_button)
@@ -153,6 +180,73 @@ class MainWindow(QMainWindow):
         # Miután a lista widget már létezik, betöltjük a játékokat.
         self._reload_games()
 
+
+
+
+    def _build_status_bar(self):
+        """
+        Állapotsor létrehozása.
+        """
+
+        self.status_games_count_label = QLabel("0 játék")
+        self.status_total_size_label = QLabel("Méret összesen: 0 B")
+        self.status_selected_size_label = QLabel("Kijelölve: -")
+
+        status_bar = self.statusBar()
+        status_bar.addWidget(self.status_games_count_label)
+        status_bar.addPermanentWidget(self.status_total_size_label)
+        status_bar.addPermanentWidget(self.status_selected_size_label)
+
+
+
+
+
+    def _update_status_bar(self):
+        """
+        Frissíti az állapotsor játék- és méretadatait.
+        """
+
+        games_count = len(self.games)
+
+        total_size = 0
+
+        for game in self.games:
+            game_size = self._game_size_bytes(game)
+            total_size += game_size
+
+            print(
+                "DEBUG SIZE:",
+                game.get("name", "Névtelen játék"),
+                self._format_size(game_size),
+                game.get("executable_path", ""),
+            )
+
+        self.status_games_count_label.setText(f"{games_count} játék")
+        self.status_total_size_label.setText(
+            f"Méret összesen: {self._format_size(total_size)}"
+        )
+
+        selected_game = self._selected_game()
+
+        if selected_game is None:
+            self.status_selected_size_label.setText("Kijelölve: -")
+            return
+
+        name = selected_game.get("name", "Névtelen játék")
+        selected_size = self._game_size_bytes(selected_game)
+
+        self.status_selected_size_label.setText(
+            f"Kijelölve: {name} — {self._format_size(selected_size)}"
+        )
+
+
+
+
+
+
+
+
+
     def _open_add_game_dialog(self):
         """
         Megnyitja az új játék hozzáadása ablakot.
@@ -163,6 +257,35 @@ class MainWindow(QMainWindow):
             return
 
         game_data = wizard.get_game_data()
+
+        games = load_games()
+
+        new_name = str(game_data.get("name", "")).strip().casefold()
+        new_path = str(game_data.get("executable_path", "")).strip()
+
+        for existing_game in games:
+            existing_name = str(existing_game.get("name", "")).strip().casefold()
+            existing_path = str(existing_game.get("executable_path", "")).strip()
+
+        if new_path and existing_path and new_path == existing_path:
+            QMessageBox.warning(
+                self,
+                "Duplikált játék",
+                "Ez az indítófájl már szerepel a launcherben.\n\n"
+                f"{game_data.get('executable_path', '')}",
+            )
+            return
+
+        if new_name and existing_name and new_name == existing_name:
+            QMessageBox.warning(
+                self,
+                "Duplikált játék",
+                "Ilyen nevű játék már szerepel a launcherben.\n\n"
+                f"{game_data.get('name', '')}",
+            )
+            return
+
+
 
         if wizard.should_create_menu_icon():
             desktop_path = create_menu_desktop_launcher(
@@ -184,7 +307,6 @@ class MainWindow(QMainWindow):
 
             game_data["desktop_icon_path"] = str(desktop_icon_path)
 
-        games = load_games()
         games.append(game_data)
         save_games(games)
 
@@ -345,7 +467,10 @@ class MainWindow(QMainWindow):
         Újratölti és megjeleníti a felvett játékokat.
         """
 
-        self.games = load_games()
+        self.games = sorted(
+            load_games(),
+            key=lambda game: str(game.get("name", "")).casefold(),
+        )
 
         self.games_table.setRowCount(0)
 
@@ -374,6 +499,9 @@ class MainWindow(QMainWindow):
             self.games_table.setCellWidget(row, 2, launch_button)
 
 
+        self._update_status_bar()
+
+
 
     def _launch_game_from_row(self, row):
         """
@@ -399,7 +527,7 @@ class MainWindow(QMainWindow):
         desktop_path = game.get("desktop_path", "")
         executable_path = game.get("executable_path", "")
 
-        game_type = game.get("type", "native")
+        game_type = str(game.get("type", "native")).lower()
 
         dos_extensions = (".exe", ".bat", ".com")
 
@@ -492,3 +620,118 @@ class MainWindow(QMainWindow):
         old_game.clear()
         old_game.update(updated_game)
         save_games(self.games)
+
+
+
+
+
+
+
+
+    # --- MainWindow segédfüggvények:
+
+    # Méretformázó helper:
+    def _format_size(self, size_bytes):
+        """
+        Bájt méret olvasható formázása.
+        """
+
+        if not size_bytes:
+            return "0 B"
+
+        size = float(size_bytes)
+        units = ["B", "KB", "MB", "GB", "TB"]
+
+        for unit in units:
+            if size < 1024 or unit == units[-1]:
+                if unit == "B":
+                    return f"{int(size)} {unit}"
+
+                return f"{size:.1f} {unit}".replace(".", ",")
+
+            size /= 1024
+
+        return "0 B"
+
+
+    # Könyvtár-méret számoló:
+    def _path_size_bytes(self, path: Path) -> int:
+        """
+        Fájl vagy mappa méretének kiszámítása bájtban.
+        """
+
+        if not path.exists():
+            return 0
+
+        if path.is_file():
+            return path.stat().st_size
+
+        total_size = 0
+
+        for item in path.rglob("*"):
+            if item.is_file():
+                try:
+                    total_size += item.stat().st_size
+                except OSError:
+                    pass
+
+        return total_size
+
+
+
+    def _game_size_bytes(self, game: dict) -> int:
+        """
+        Egy játék becsült mérete bájtban.
+
+        DOSBox játékoknál a DOS gyűjtőmappa alatti játékgyökeret méri.
+        Wine játékoknál az indítófájl mappáját.
+        Natív Linux programnál magát az indítófájlt.
+        """
+
+        executable_path = game.get("executable_path", "")
+
+        if not executable_path:
+            return 0
+
+        path = Path(executable_path)
+
+        if not path.exists():
+            return 0
+
+        game_type = str(game.get("type", "native")).lower()
+
+        if path.is_dir():
+            return self._path_size_bytes(path)
+
+        if game_type == "dosbox":
+            game_root = self._guess_game_root_path(path)
+            return self._path_size_bytes(game_root)
+
+        if game_type == "wine":
+            return self._path_size_bytes(path.parent)
+
+        return self._path_size_bytes(path)
+
+
+
+    def _guess_game_root_path(self, executable_path: Path) -> Path:
+        """
+        Megpróbálja megtalálni a játék gyökérmappáját.
+
+        Példa:
+        /home/szaboger/Retro-jatekok/DOS/F22/F22/F22.EXE
+        -> /home/szaboger/Retro-jatekok/DOS/F22
+        """
+
+        parts = executable_path.parts
+
+        if "DOS" in parts:
+            dos_index = parts.index("DOS")
+
+            if len(parts) > dos_index + 1:
+                return Path(*parts[:dos_index + 2])
+
+        return executable_path.parent
+
+
+    # MainWindow segédfüggvények vége.
