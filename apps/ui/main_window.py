@@ -758,9 +758,14 @@ class MainWindow(QMainWindow):
         Névjegy ablak megjelenítése.
         """
 
+        about_text = (
+            "Retro Game Launcher\n\n"
+            "Egyszerű indítófelület DOSBox, Wine és natív Linux játékokhoz.\n\n"
+            "Fejlesztés kezdete: 2026.05.25"
+        )
+
         QMessageBox.about(
             self,
             "Névjegy",
-            "Retro Game Launcher\n\n"
-            "Egyszerű indítófelület DOSBox, Wine és natív Linux játékokhoz.",
+            about_text,
         )
