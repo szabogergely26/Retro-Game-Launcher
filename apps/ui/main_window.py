@@ -1,6 +1,22 @@
 # apps/ui/main_window.py
 # ----------------------------
 
+
+# Térkép a main_window -hoz:
+
+# apps/
+# └── ui/
+# *  ├── main_window.py              # marad a MainWindow osztály központja
+#    └── main_window/
+#        ├── __init__.py
+#        ├── menus.py                # Fájl / Súgó menük
+#        ├── toolbar.py              # eszköztár, Új játék gomb
+#        ├── statusbar.py            # állapotsor frissítése
+#        ├── game_list.py            # lista feltöltése, kijelölés, lista UI
+#        └── game_actions.py         # hozzáadás, szerkesztés, törlés, indítás
+
+
+
 # --- Importok:
 import subprocess
 from pathlib import Path
@@ -35,6 +51,10 @@ from apps.core.game_store import (
 from apps.ui.add_game_wizard import AddGameWizard
 from apps.ui.edit_game_dialog import EditGameDialog
 
+
+from apps.ui.main_window_parts.menus import setup_menus
+
+
 # --- Importok vége
 
 
@@ -64,29 +84,11 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("Retro Game Launcher")
         self.resize(760, 480)
 
-        self._build_menu()
+        setup_menus(self)
         self._build_status_bar()
         self._build_central_view()
 
-    def _build_menu(self):
-        """
-        Főmenü létrehozása.
-        """
 
-        menu_bar = self.menuBar()
-
-        file_menu = menu_bar.addMenu("Fájl")
-
-        new_game_action = file_menu.addAction("Új játék hozzáadása")
-        new_game_action.triggered.connect(self._open_add_game_dialog)
-
-        file_menu.addSeparator()
-
-        edit_game_action = file_menu.addAction("Szerkesztés")
-        edit_game_action.triggered.connect(self._edit_selected_game)
-
-        exit_action = file_menu.addAction("Kilépés")
-        exit_action.triggered.connect(self.close)
 
     def _build_central_view(self):
         """
@@ -735,3 +737,30 @@ class MainWindow(QMainWindow):
 
 
     # MainWindow segédfüggvények vége.
+
+
+    def _open_settings(self):
+        """
+        Beállítások ablak megnyitása.
+
+        Egyelőre helyőrző, később ide jön majd a valódi SettingsDialog.
+        """
+
+        QMessageBox.information(
+            self,
+            "Beállítások",
+            "A beállítások ablak még nincs elkészítve.",
+        )
+
+
+    def _show_about(self):
+        """
+        Névjegy ablak megjelenítése.
+        """
+
+        QMessageBox.about(
+            self,
+            "Névjegy",
+            "Retro Game Launcher\n\n"
+            "Egyszerű indítófelület DOSBox, Wine és natív Linux játékokhoz.",
+        )
