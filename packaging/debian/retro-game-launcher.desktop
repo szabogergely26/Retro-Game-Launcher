@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Retro Game Launcher
+Comment=Egyszerű indítófelület DOSBox, Wine és natív Linux játékokhoz
+Exec=retro-game-launcher
+Terminal=false
+Categories=Game;
+StartupNotify=true

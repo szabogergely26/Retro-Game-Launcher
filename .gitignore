@@ -16,7 +16,7 @@ venv/
 build/
 dist/
 *.egg-info/
-packaging/
+
 
 # Logs
 *.log
