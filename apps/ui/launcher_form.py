@@ -14,6 +14,7 @@ A tényleges .desktop fájl generálását később külön core modulba tesszü
 import shutil
 import subprocess
 
+from PySide6.QtCore import Signal
 from PySide6.QtWidgets import (
     QComboBox,
     QFileDialog,
@@ -27,6 +28,7 @@ from PySide6.QtWidgets import (
 )
 
 from apps.core.desktop_writer import create_menu_desktop_launcher
+from apps.core.game_store import add_game
 
 class LauncherForm(QWidget):
     """
@@ -35,6 +37,11 @@ class LauncherForm(QWidget):
     Ez egy külön QWidget, amit a MainWindow fog megjeleníteni.
     Így a főablak tiszta marad, az űrlaplogika pedig itt van egy helyen.
     """
+
+
+    # Ez jelzi a főablaknak, hogy új játék került a listába.
+    game_created = Signal()
+
 
     def __init__(self):
         super().__init__()
@@ -191,6 +198,18 @@ class LauncherForm(QWidget):
                 icon_path=icon,
                 launcher_type=launcher_type,
             )
+
+            game_data = {
+            "name": name,
+            "executable_path": executable,
+            "icon_path": icon,
+            "launcher_type": launcher_type,
+            "desktop_path": str(desktop_path),
+            }
+
+            add_game(game_data)
+
+            self.game_created.emit()
 
         except Exception as error:
             self.status_label.setText(f"Hiba az indító létrehozásakor:\n{error}")
