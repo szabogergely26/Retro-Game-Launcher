@@ -25,48 +25,23 @@ jobs:
           BUILD_DIR="build/${PACKAGE_NAME}_${VERSION}_all"
 
           rm -rf build
+          mkdir -p "${BUILD_DIR}/DEBIAN"
           mkdir -p "${BUILD_DIR}/usr/share/${PACKAGE_NAME}"
           mkdir -p "${BUILD_DIR}/usr/bin"
           mkdir -p "${BUILD_DIR}/usr/share/applications"
-          mkdir -p "${BUILD_DIR}/DEBIAN"
 
           cp -r apps "${BUILD_DIR}/usr/share/${PACKAGE_NAME}/"
           cp main.py "${BUILD_DIR}/usr/share/${PACKAGE_NAME}/"
           cp requirements.txt "${BUILD_DIR}/usr/share/${PACKAGE_NAME}/"
 
-          if [ -d "icons" ]; then
-            cp -r icons "${BUILD_DIR}/usr/share/${PACKAGE_NAME}/"
-          fi
+          cp packaging/debian/control.template "${BUILD_DIR}/DEBIAN/control"
+          cp packaging/debian/retro-game-launcher.desktop "${BUILD_DIR}/usr/share/applications/retro-game-launcher.desktop"
+          cp packaging/linux/retro-game-launcher "${BUILD_DIR}/usr/bin/retro-game-launcher"
 
-          cat > "${BUILD_DIR}/usr/bin/${PACKAGE_NAME}" << 'EOF'
-          #!/bin/sh
-          cd /usr/share/retro-game-launcher
-          python3 main.py
-          EOF
-
-          chmod +x "${BUILD_DIR}/usr/bin/${PACKAGE_NAME}"
-
-          cat > "${BUILD_DIR}/usr/share/applications/${PACKAGE_NAME}.desktop" << 'EOF'
-          [Desktop Entry]
-          Type=Application
-          Name=Retro Game Launcher
-          Comment=Egyszerű indítófelület DOSBox, Wine és natív Linux játékokhoz
-          Exec=retro-game-launcher
-          Terminal=false
-          Categories=Game;
-          EOF
-
-          cat > "${BUILD_DIR}/DEBIAN/control" << EOF
-          Package: ${PACKAGE_NAME}
-          Version: ${VERSION}
-          Section: games
-          Priority: optional
-          Architecture: all
-          Depends: python3, python3-pyside6.qtwidgets
-          Maintainer: Gergely Szabó
-          Description: Retro Game Launcher
-           Egyszerű indítófelület DOSBox, Wine és natív Linux játékokhoz.
-          EOF
+          chmod 755 "${BUILD_DIR}/usr/bin/retro-game-launcher"
+          chmod 755 "${BUILD_DIR}/DEBIAN"
+          chmod 644 "${BUILD_DIR}/DEBIAN/control"
+          chmod 644 "${BUILD_DIR}/usr/share/applications/retro-game-launcher.desktop"
 
       - name: Build deb package
         run: |
