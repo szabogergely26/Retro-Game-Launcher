@@ -1,104 +1,174 @@
 # Retro Game Launcher
-# Státusz: korai, működő prototipus !
 
-Egyszerű, PySide6 alapú Linuxos segédprogram retro játékok indítóikonjainak létrehozásához.
+**Státusz:** korai, működő prototípus
 
-A projekt célja hosszabb távon egy könnyen használható, kártyás felületű retro játék launcher készítése, ahol a felvett játékok ikonokkal/képekkel jelennek meg, és kattintásra közvetlenül indíthatók.
+A Retro Game Launcher egy egyszerű, PySide6 alapú Linuxos alkalmazás retro játékok kezeléséhez és indításához.
+
+A cél nem egy teljes Lutris-klón, hanem egy könnyen átlátható, saját használatra kényelmes launcher, amellyel DOSBox, Wine és natív Linux játékok vehetők fel egy helyi játéklistába, majd onnan közvetlenül indíthatók.
 
 ## Jelenlegi állapot
 
-A projekt jelenleg korai prototípus állapotban van.
+A projekt jelenleg korai, de már használható prototípus állapotban van.
 
-A most működő funkciók:
+A jelenleg működő fő funkciók:
 
-- PySide6 alapú grafikus ablak
-- játék nevének megadása
-- indítófájl kiválasztása
-- ikonfájl kiválasztása
-- indítási típus kiválasztása:
-  - Natív / közvetlen indítás
+- PySide6 alapú grafikus főablak
+- felvett játékok táblázatos megjelenítése
+- játék hozzáadása varázslóval
+- játék neve, indítófájlja, ikonja és indítási típusa megadható
+- támogatott indítási típusok:
+  - natív Linux indítás
   - DOSBox
   - Wine
-  - Egyedi parancs
-- `.desktop` fájl létrehozása a felhasználói alkalmazásmenübe
-- KDE menü frissítése `kbuildsycoca6` / `kbuildsycoca5` segítségével
+  - egyedi parancs előkészítve / későbbi bővítésre
+- játék indítása a listából
+- játék indítása dupla kattintással
+- játék eltávolítása a launcher listából
+- menübejegyzés és asztali ikon létrehozása
+- létrehozott `.desktop` fájlok törlése játék eltávolításakor
+- játéklista automatikus mentése helyi JSON fájlba
+- játéklista automatikus betöltése induláskor
+- `Fájl → Játéklista mentése...`
+- `Fájl → Játéklista betöltése...`
+- `Fájl → Játéklista törlése...`
+- állapotsor játékdarabszámmal és méretadatokkal
+- `Súgó → Névjegy`
+- modulokra bontott főablak-kód
 
-A generált indítófájl helye:
+## Adattárolás
+
+A launcher a felvett játékokat helyi JSON fájlban tárolja.
+
+Alapértelmezett hely:
+
+```text
+~/.local/share/retro-game-launcher/games.json
+```
+
+A játéklista kézzel is menthető és visszatölthető a Fájl menüből. Ez újratelepítés vagy rendszerköltöztetés esetén hasznos.
+
+Fontos: a játéklista mentése csak a launcher adatait menti, magukat a játékfájlokat nem. A visszatöltött lista akkor működik azonnal, ha a játékok ugyanazon az útvonalon elérhetők.
+
+## Generált indítók
+
+A létrehozott alkalmazásmenü-indítók helye:
 
 ```text
 ~/.local/share/applications/
 ```
 
-## Követelmények
-Python 3
-PySide6
-Linux asztali környezet
-DOSBox, ha DOS-os játékot szeretnél indítani
+Az asztali ikonok a felhasználó asztalára kerülnek, ha a játék hozzáadásakor ez be van jelölve.
 
+## Követelmények
+
+- Python 3
+- PySide6
+- Linux asztali környezet
+- DOSBox DOS-os játékokhoz
+- Wine Windowsos játékokhoz
 
 ## Virtuális környezet telepítése
-1. python3 -m venv .venv
-2. source .venv/bin/activate
-3. pip install -r requirements.txt
 
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+```
 
-## Futtatás
+## Futtatás fejlesztői módban
+
+```bash
 source .venv/bin/activate
 python main.py
-
-
+```
 
 ## Használat
-- Add meg a játék nevét.
-- Válaszd ki az indítófájlt.
-- Válassz ikonfájlt.
-- Válaszd ki az indítás típusát.
-- Kattints az Indító létrehozása gombra.
-- Szükség esetén kattints a Menü frissítése gombra.
 
-KDE alatt a létrehozott indító a menüben a Játékok kategóriában jelenhet meg.
+1. Indítsd el az alkalmazást.
+2. Kattints az **Új játék hozzáadása** gombra.
+3. Add meg a játék nevét.
+4. Válaszd ki az indítófájlt.
+5. Válaszd ki az ikont, ha szükséges.
+6. Válaszd ki az indítás típusát.
+7. Döntsd el, készüljön-e menübejegyzés vagy asztali ikon.
+8. A játék megjelenik a launcher listájában.
+9. Az **Indítás** gombbal vagy dupla kattintással elindítható.
 
+## Játéklista mentése és visszaállítása
 
-# Jelenlegi projekt-struktúra
+A játéklista biztonsági mentéséhez:
+
+```text
+Fájl → Játéklista mentése...
+```
+
+Visszatöltéshez:
+
+```text
+Fájl → Játéklista betöltése...
+```
+
+A teljes játéklista törléséhez:
+
+```text
+Fájl → Játéklista törlése...
+```
+
+Ez csak a launcher listáját törli, a játékfájlokat nem.
+
+## Jelenlegi projekt-struktúra
+
+```text
 Retro-Game-Launcher/
 ├── apps/
 │   ├── core/
-│   │   └── desktop_writer.py
-│   ├── resources/
+│   │   ├── desktop_writer.py
+│   │   └── game_store.py
 │   └── ui/
+│       ├── add_game_wizard.py
+│       ├── edit_game_dialog.py
 │       ├── launcher_form.py
-│       └── main_window.py
+│       ├── main_window.py
+│       └── main_window_parts/
+│           ├── central_view.py
+│           ├── game_actions.py
+│           ├── game_helpers.py
+│           ├── game_list.py
+│           ├── menus.py
+│           ├── statusbar.py
+│           └── window_actions.py
 ├── main.py
 ├── requirements.txt
 └── README.md
+```
 
+## Fejlesztési terv
 
+Következő tervezett lépések:
 
-# Fejlesztési terv
+- játék szerkesztési funkció visszahozása
+- `.desktop` fájl újragenerálása játék módosítása után
+- játékkártyás nézet kialakítása
+- játékborítók / képek támogatása
+- sötét téma
+- beállítások ablak bővítése
+- Wine-kompatibilitási beállítások
+- DOSBox-profilok finomítása
+- GitHub Actions alapú `.deb` csomaggenerálás
+- később APT repós frissítési megoldás tesztelése
 
-## Következő tervezett lépések:
+## Cél
 
-Fájl → Új játék menüpont létrehozása
-a jelenlegi űrlap áthelyezése külön QDialog ablakba
-főablak átalakítása játékkártyás nézetté
-játékadatok mentése helyi adatfájlba
-kártyára kattintva játék indítása
-indítóikon létrehozása külön menübe vagy asztalra
-később hover effektek és sötét téma
+A cél egy egyszerű, átlátható retro játék launcher Linuxra.
 
+Első stabil cél:
 
+```text
+játék hozzáadása → lista mentése → indítás → biztonsági mentés / visszatöltés
+```
 
-# Cél
+Hosszabb távon:
 
-A cél nem egy teljes Lutris-klón, hanem egy egyszerű, átlátható, saját használatra kényelmes retro játék indító.
-
-
-## Első körben a fő cél:
-
-Név + indítófájl + ikon + típus → működő Linux menüindító
-
-## Később:
-
-játék-kártyák → kattintásra indítás
-
-
+```text
+kártyás játékfelület → ikonok/képek → DOSBox/Wine profilok → csomagolt telepítés → frissíthető rendszer
+```
