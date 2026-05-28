@@ -27,6 +27,20 @@ def setup_menus(window):
 
     file_menu = menubar.addMenu("Fájl")
 
+
+    save_games_action = file_menu.addAction("Játéklista mentése...")
+    save_games_action.triggered.connect(window._export_games)
+
+    load_games_action = file_menu.addAction("Játéklista betöltése...")
+    load_games_action.triggered.connect(window._import_games)
+
+    file_menu.addSeparator()
+
+    clear_games_action = file_menu.addAction("Játéklista törlése...")
+    clear_games_action.triggered.connect(window._clear_games)
+
+    file_menu.addSeparator()
+
     settings_action = QAction("Beállítások...", window)
     settings_action.triggered.connect(window._open_settings)
     file_menu.addAction(settings_action)

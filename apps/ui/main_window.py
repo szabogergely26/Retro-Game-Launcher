@@ -23,7 +23,7 @@ from pathlib import Path
 
 from PySide6.QtWidgets import QMainWindow
 
-
+from apps.core.game_store import load_games
 
 # Main_Window_parts:
 
@@ -32,7 +32,6 @@ from apps.ui.main_window_parts.statusbar import setup_status_bar
 from apps.ui.main_window_parts.central_view import setup_central_view
 from apps.ui.main_window_parts.game_list import reload_games
 
-
 from apps.ui.main_window_parts.game_actions import (
     open_add_game_dialog,
     selected_game,
@@ -40,8 +39,10 @@ from apps.ui.main_window_parts.game_actions import (
     delete_selected_game,
     launch_game_from_row,
     launch_game,
+    export_games,
+    import_games,
+    clear_games,
 )
-
 
 from apps.ui.main_window_parts.game_helpers import (
     format_size,
@@ -50,11 +51,11 @@ from apps.ui.main_window_parts.game_helpers import (
     path_size_bytes,
 )
 
-
 from apps.ui.main_window_parts.window_actions import (
     open_settings,
     show_about,
 )
+
 
 # --- Importok vége
 
@@ -167,6 +168,22 @@ class MainWindow(QMainWindow):
 
         delete_selected_game(self)
 
+
+
+
+    def _clear_games(self):
+        """
+        Teljes játéklista törlése.
+        """
+
+        clear_games(self)
+
+
+
+
+
+
+
     def _reload_games(self):
         """
         Újratölti és megjeleníti a felvett játékokat.
@@ -192,6 +209,27 @@ class MainWindow(QMainWindow):
         """
 
         launch_game(self, game)
+
+
+
+
+    def _export_games(self):
+        """
+        Játéklista mentése külső JSON fájlba.
+        """
+
+        export_games(self)
+
+
+    def _import_games(self):
+        """
+        Játéklista betöltése külső JSON fájlból.
+        """
+
+        import_games(self)
+
+
+
 
 
 

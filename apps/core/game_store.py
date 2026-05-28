@@ -21,6 +21,7 @@ def load_games() -> list[dict]:
     Betölti a felvett játékokat.
 
     Ha még nincs games.json, akkor üres listát ad vissza.
+    Ha a fájl sérült vagy nem lista van benne, szintén üres listát ad vissza.
     """
 
     if not GAMES_FILE.exists():
@@ -60,17 +61,49 @@ def add_game(game: dict) -> None:
     save_games(games)
 
 
-
-def delete_game_by_desktop_path(desktop_path: str) -> None:
+def delete_game_by_index(index: int) -> None:
     """
-    Töröl egy játékot a játéklistából a desktop_path alapján.
+    Töröl egy játékot a játéklistából listaindex alapján.
     """
 
     games = load_games()
 
-    filtered_games = [
-        game for game in games
-        if game.get("desktop_path", "") != desktop_path
-    ]
+    if index < 0 or index >= len(games):
+        return
 
-    save_games(filtered_games)
+    del games[index]
+    save_games(games)
+
+
+
+# Import / Export funkció (Játéklista Mentése / Betöltése):
+
+def export_games_to_file(target_path: str | Path) -> None:
+    """
+    Exportálja a jelenlegi játéklistát egy kiválasztott JSON fájlba.
+    """
+
+    games = load_games()
+
+    target_file = Path(target_path)
+    target_file.parent.mkdir(parents=True, exist_ok=True)
+
+    content = json.dumps(games, ensure_ascii=False, indent=4)
+    target_file.write_text(content, encoding="utf-8")
+
+
+def import_games_from_file(source_path: str | Path) -> None:
+    """
+    Importál egy játéklistát egy kiválasztott JSON fájlból,
+    majd elmenti az alkalmazás saját games.json fájljába.
+    """
+
+    source_file = Path(source_path)
+
+    content = source_file.read_text(encoding="utf-8")
+    data = json.loads(content)
+
+    if not isinstance(data, list):
+        raise ValueError("A kiválasztott fájl nem érvényes játéklista.")
+
+    save_games(data)

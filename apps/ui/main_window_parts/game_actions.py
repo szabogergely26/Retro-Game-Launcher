@@ -20,18 +20,24 @@
 
 
 
-
+import json
 import subprocess
 from pathlib import Path
 
-from PySide6.QtWidgets import QMessageBox, QWizard
+
+from PySide6.QtWidgets import QFileDialog, QMessageBox, QWizard
 
 from apps.core.desktop_writer import (
     create_menu_desktop_launcher,
     create_desktop_icon_launcher,
 )
 
-from apps.core.game_store import load_games, save_games
+from apps.core.game_store import (
+    export_games_to_file,
+    import_games_from_file,
+    load_games,
+    save_games,
+)
 
 from apps.ui.add_game_wizard import AddGameWizard
 
@@ -227,6 +233,59 @@ def delete_selected_game(window):
     )
 
 
+
+def clear_games(window):
+    """
+    Törli a teljes játéklistát.
+
+    A játékfájlokat nem törli, csak a launcher saját listáját üríti.
+    """
+
+    if not window.games:
+        QMessageBox.information(
+            window,
+            "Üres játéklista",
+            "A játéklista már üres.",
+        )
+        return
+
+    answer = QMessageBox.question(
+        window,
+        "Játéklista törlése",
+        "Biztosan törlöd a teljes játéklistát?\n\n"
+        "Ez csak a launcher listáját üríti ki, a játékfájlokat nem törli.",
+        QMessageBox.Yes | QMessageBox.No,
+        QMessageBox.No,
+    )
+
+    if answer != QMessageBox.Yes:
+        return
+
+    save_games([])
+    window._reload_games()
+
+    QMessageBox.information(
+        window,
+        "Játéklista törölve",
+        "A játéklista törlése sikerült.",
+    )
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 def launch_game_from_row(window, row):
     """
     Elindítja a táblázat adott sorában lévő játékot.
@@ -292,3 +351,84 @@ def launch_game(window, game):
     )
 
 
+
+
+
+def export_games(window):
+    """
+    Játéklista mentése kiválasztott JSON fájlba.
+    """
+
+    file_path, _selected_filter = QFileDialog.getSaveFileName(
+        window,
+        "Játéklista mentése",
+        str(Path.home() / "retro-game-launcher-games.json"),
+        "JSON fájl (*.json)",
+    )
+
+    if not file_path:
+        return
+
+    try:
+        export_games_to_file(file_path)
+
+    except OSError as error:
+        QMessageBox.warning(
+            window,
+            "Mentési hiba",
+            f"A játéklista mentése nem sikerült:\n\n{error}",
+        )
+        return
+
+    QMessageBox.information(
+        window,
+        "Játéklista elmentve",
+        f"A játéklista mentése sikerült:\n\n{file_path}",
+    )
+
+
+def import_games(window):
+    """
+    Játéklista betöltése kiválasztott JSON fájlból.
+    """
+
+    file_path, _selected_filter = QFileDialog.getOpenFileName(
+        window,
+        "Játéklista betöltése",
+        str(Path.home()),
+        "JSON fájl (*.json)",
+    )
+
+    if not file_path:
+        return
+
+    answer = QMessageBox.question(
+        window,
+        "Játéklista betöltése",
+        "A betöltés felülírja a jelenlegi játéklistát.\n\n"
+        "Biztosan folytatod?",
+        QMessageBox.Yes | QMessageBox.No,
+        QMessageBox.No,
+    )
+
+    if answer != QMessageBox.Yes:
+        return
+
+    try:
+        import_games_from_file(file_path)
+
+    except (OSError, ValueError, json.JSONDecodeError) as error:
+        QMessageBox.warning(
+            window,
+            "Betöltési hiba",
+            f"A játéklista betöltése nem sikerült:\n\n{error}",
+        )
+        return
+
+    window._reload_games()
+
+    QMessageBox.information(
+        window,
+        "Játéklista betöltve",
+        "A játéklista betöltése sikerült.",
+    )
