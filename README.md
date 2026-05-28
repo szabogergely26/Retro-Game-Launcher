@@ -5,6 +5,14 @@ Egyszerű, PySide6 alapú Linuxos segédprogram retro játékok indítóikonjain
 
 A projekt célja hosszabb távon egy könnyen használható, kártyás felületű retro játék launcher készítése, ahol a felvett játékok ikonokkal/képekkel jelennek meg, és kattintásra közvetlenül indíthatók.
 
+
+## Következő lépések
+  - `GitHub Release alapú .deb terjesztés`
+  - `saját APT repository előkészítése`
+  - `telepítés utáni repository-beállítás a későbbi automatikus frissítésekhez`
+
+
+
 ## Jelenlegi állapot
 
 A projekt jelenleg korai prototípus állapotban van.
