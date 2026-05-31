@@ -1,0 +1,82 @@
+name: Publish APT repository
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  publish-apt-repo:
+    name: Build and publish APT repository
+    runs-on: ubuntu-latest
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install repository tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y dpkg-dev
+
+      - name: Build deb package
+        run: |
+          set -e
+
+          PACKAGE_NAME="retro-game-launcher"
+          VERSION="0.1.1"
+          BUILD_DIR="build/${PACKAGE_NAME}_${VERSION}_all"
+
+          rm -rf build repo
+          mkdir -p "${BUILD_DIR}/DEBIAN"
+          mkdir -p "${BUILD_DIR}/usr/share/${PACKAGE_NAME}"
+          mkdir -p "${BUILD_DIR}/usr/bin"
+          mkdir -p "${BUILD_DIR}/usr/share/applications"
+
+          cp -r apps "${BUILD_DIR}/usr/share/${PACKAGE_NAME}/"
+          cp main.py "${BUILD_DIR}/usr/share/${PACKAGE_NAME}/"
+          cp requirements.txt "${BUILD_DIR}/usr/share/${PACKAGE_NAME}/"
+
+          cp packaging/debian/control.template "${BUILD_DIR}/DEBIAN/control"
+          sed -i "s/^Version: .*/Version: ${VERSION}/" "${BUILD_DIR}/DEBIAN/control"
+          cp packaging/debian/retro-game-launcher.desktop "${BUILD_DIR}/usr/share/applications/retro-game-launcher.desktop"
+          cp packaging/linux/retro-game-launcher "${BUILD_DIR}/usr/bin/retro-game-launcher"
+
+          chmod 755 "${BUILD_DIR}/usr/bin/retro-game-launcher"
+          chmod 755 "${BUILD_DIR}/DEBIAN"
+          chmod 644 "${BUILD_DIR}/DEBIAN/control"
+          chmod 644 "${BUILD_DIR}/usr/share/applications/retro-game-launcher.desktop"
+
+          dpkg-deb --build "${BUILD_DIR}"
+
+      - name: Create APT repository structure
+        run: |
+          set -e
+
+          mkdir -p repo/pool/main
+          mkdir -p repo/dists/stable/main/binary-amd64
+
+          cp build/*.deb repo/pool/main/
+
+          cd repo
+          dpkg-scanpackages --arch all pool /dev/null > dists/stable/main/binary-amd64/Packages
+          gzip -k -f dists/stable/main/binary-amd64/Packages
+
+      - name: Create GitHub Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: repo
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
