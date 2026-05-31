@@ -1,5 +1,9 @@
 name: Build deb package
 
+# Ez a workflow automatikusan lefut, ha main vagy dev ágra push történik.
+# Kézzel is indítható a GitHub Actions felületéről a workflow_dispatch miatt.
+
+# Frissítésnél emeld meg a verziószámot mindig: VERSION=
 on:
   push:
     branches:
@@ -13,36 +17,51 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # A repository tartalmának letöltése a GitHub Actions futtatókörnyezetbe.
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      # A Debian csomag mappaszerkezetének előkészítése.
+      # Itt építjük fel azt a könyvtárat, amiből a dpkg-deb .deb fájlt készít.
       - name: Prepare package directory
         run: |
           set -e
 
+          # Alap csomagadatok.
           PACKAGE_NAME="retro-game-launcher"
-          VERSION="0.1.0"
+          # Ha frissíted az alkalmazást, ne felejts verziószámot emelni!
+          VERSION="0.1.2"
           BUILD_DIR="build/${PACKAGE_NAME}_${VERSION}_all"
 
+          # Korábbi build törlése, majd a Debian csomag könyvtárainak létrehozása.
           rm -rf build
           mkdir -p "${BUILD_DIR}/DEBIAN"
           mkdir -p "${BUILD_DIR}/usr/share/${PACKAGE_NAME}"
           mkdir -p "${BUILD_DIR}/usr/bin"
           mkdir -p "${BUILD_DIR}/usr/share/applications"
+          mkdir -p "${BUILD_DIR}/usr/share/icons/hicolor/256x256/apps"
 
+          # Programfájlok bemásolása a csomag /usr/share alatti saját mappájába.
           cp -r apps "${BUILD_DIR}/usr/share/${PACKAGE_NAME}/"
           cp main.py "${BUILD_DIR}/usr/share/${PACKAGE_NAME}/"
           cp requirements.txt "${BUILD_DIR}/usr/share/${PACKAGE_NAME}/"
 
+          # Debian control fájl, .desktop indító, parancssori wrapper és alkalmazásikon bemásolása.
           cp packaging/debian/control.template "${BUILD_DIR}/DEBIAN/control"
           cp packaging/debian/retro-game-launcher.desktop "${BUILD_DIR}/usr/share/applications/retro-game-launcher.desktop"
           cp packaging/linux/retro-game-launcher "${BUILD_DIR}/usr/bin/retro-game-launcher"
+          cp packaging/icons/retro-game-launcher.png \
+            "${BUILD_DIR}/usr/share/icons/hicolor/256x256/apps/retro-game-launcher.png"
 
+          # Jogosultságok beállítása.
+          # A wrapper futtatható, a metadata és ikon fájlok olvashatóak legyenek.
           chmod 755 "${BUILD_DIR}/usr/bin/retro-game-launcher"
           chmod 755 "${BUILD_DIR}/DEBIAN"
           chmod 644 "${BUILD_DIR}/DEBIAN/control"
           chmod 644 "${BUILD_DIR}/usr/share/applications/retro-game-launcher.desktop"
+          chmod 644 "${BUILD_DIR}/usr/share/icons/hicolor/256x256/apps/retro-game-launcher.png"
 
+      # A .deb csomag elkészítése az előkészített könyvtárból.
       - name: Build deb package
         run: |
           set -e
@@ -53,6 +72,8 @@ jobs:
 
           dpkg-deb --build "${BUILD_DIR}"
 
+      # Az elkészült .deb fájl feltöltése GitHub Actions artifactként.
+      # Ez kézi letöltéshez jó, de nem APT szoftverforrás.
       - name: Upload deb artifact
         uses: actions/upload-artifact@v4
         with:

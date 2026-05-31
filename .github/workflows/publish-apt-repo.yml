@@ -1,11 +1,24 @@
 name: Publish APT repository
 
+# Ez a workflow csak main ágra push esetén fut le automatikusan.
+# Feladata:
+# - .deb csomag építése
+# - minimál APT repository struktúra létrehozása
+# - GitHub Pages-re publikálás
+#
+# Ez teszi lehetővé, hogy a program később így frissüljön:
+# sudo apt update
+# sudo apt upgrade
 on:
   push:
     branches:
       - main
   workflow_dispatch:
 
+# GitHub Pages publikáláshoz szükséges jogosultságok.
+# contents: read   -> a repository tartalmának olvasása
+# pages: write     -> GitHub Pages artifact publikálása
+# id-token: write  -> Pages deploy hitelesítéséhez szükséges
 permissions:
   contents: read
   pages: write
@@ -16,49 +29,89 @@ jobs:
     name: Build and publish APT repository
     runs-on: ubuntu-latest
 
+    # GitHub Pages környezet.
+    # A deploy-pages action ide publikálja az elkészült repo tartalmát.
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
 
     steps:
+      # Repository tartalmának letöltése a GitHub Actions futtatókörnyezetbe.
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      # APT repository index készítéséhez szükséges eszköz telepítése.
+      # A dpkg-scanpackages a Packages fájlt generálja le.
       - name: Install repository tools
         run: |
           sudo apt-get update
           sudo apt-get install -y dpkg-dev
 
+      # Debian csomag elkészítése.
+      # Ez hasonló a build-deb.yml workflow-hoz, de itt a kész csomagból
+      # utána APT repository is készül.
       - name: Build deb package
         run: |
           set -e
 
+          # Alap csomagadatok.
+          # FONTOS:
+          # Új frissítés teszteléséhez ezt a verziót emelni kell.
+          # Példa: 0.1.1 -> 0.1.2
           PACKAGE_NAME="retro-game-launcher"
-          VERSION="0.1.1"
+          VERSION="0.1.2"
           BUILD_DIR="build/${PACKAGE_NAME}_${VERSION}_all"
 
+          # Korábbi build és repo mappák törlése.
           rm -rf build repo
+
+          # Debian csomag könyvtárszerkezetének létrehozása.
           mkdir -p "${BUILD_DIR}/DEBIAN"
           mkdir -p "${BUILD_DIR}/usr/share/${PACKAGE_NAME}"
           mkdir -p "${BUILD_DIR}/usr/bin"
           mkdir -p "${BUILD_DIR}/usr/share/applications"
+          mkdir -p "${BUILD_DIR}/usr/share/icons/hicolor/256x256/apps"
 
+          # Programfájlok bemásolása.
           cp -r apps "${BUILD_DIR}/usr/share/${PACKAGE_NAME}/"
           cp main.py "${BUILD_DIR}/usr/share/${PACKAGE_NAME}/"
           cp requirements.txt "${BUILD_DIR}/usr/share/${PACKAGE_NAME}/"
 
+          # Debian control fájl bemásolása.
           cp packaging/debian/control.template "${BUILD_DIR}/DEBIAN/control"
-          sed -i "s/^Version: .*/Version: ${VERSION}/" "${BUILD_DIR}/DEBIAN/control"
-          cp packaging/debian/retro-game-launcher.desktop "${BUILD_DIR}/usr/share/applications/retro-game-launcher.desktop"
-          cp packaging/linux/retro-game-launcher "${BUILD_DIR}/usr/bin/retro-game-launcher"
 
+          # A control.template jelenleg fix verziót tartalmaz.
+          # Itt írjuk át a csomag tényleges verziójára.
+          sed -i "s/^Version: .*/Version: ${VERSION}/" "${BUILD_DIR}/DEBIAN/control"
+
+          # .desktop indító, parancssori wrapper és ikon bemásolása.
+          cp packaging/debian/retro-game-launcher.desktop \
+            "${BUILD_DIR}/usr/share/applications/retro-game-launcher.desktop"
+
+          cp packaging/linux/retro-game-launcher \
+            "${BUILD_DIR}/usr/bin/retro-game-launcher"
+
+          cp packaging/icons/retro-game-launcher.png \
+            "${BUILD_DIR}/usr/share/icons/hicolor/256x256/apps/retro-game-launcher.png"
+
+          # Jogosultságok beállítása.
           chmod 755 "${BUILD_DIR}/usr/bin/retro-game-launcher"
           chmod 755 "${BUILD_DIR}/DEBIAN"
           chmod 644 "${BUILD_DIR}/DEBIAN/control"
           chmod 644 "${BUILD_DIR}/usr/share/applications/retro-game-launcher.desktop"
+          chmod 644 "${BUILD_DIR}/usr/share/icons/hicolor/256x256/apps/retro-game-launcher.png"
 
+          # .deb csomag elkészítése.
           dpkg-deb --build "${BUILD_DIR}"
 
+      # Minimál APT repository struktúra létrehozása.
+      #
+      # A repo végül így néz ki:
+      # repo/
+      # ├── pool/main/*.deb
+      # └── dists/stable/main/binary-amd64/Packages(.gz)
+      #
+      # Ez elég ahhoz, hogy az apt policy / apt install lássa a csomagot.
       - name: Create APT repository structure
         run: |
           set -e
@@ -66,17 +119,27 @@ jobs:
           mkdir -p repo/pool/main
           mkdir -p repo/dists/stable/main/binary-amd64
 
+          # Elkészült .deb csomag bemásolása a repo pool mappájába.
           cp build/*.deb repo/pool/main/
 
+          # Packages index generálása.
           cd repo
           dpkg-scanpackages --arch all pool /dev/null > dists/stable/main/binary-amd64/Packages
           gzip -k -f dists/stable/main/binary-amd64/Packages
 
+      # A repo mappa becsomagolása GitHub Pages artifactként.
       - name: Create GitHub Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
           path: repo
 
+      # Publikálás GitHub Pages-re.
+      #
+      # A jelenlegi repo URL:
+      # https://szabogergely26.github.io/Retro-Game-Launcher
+      #
+      # A csomaglista innen érhető el:
+      # https://szabogergely26.github.io/Retro-Game-Launcher/dists/stable/main/binary-amd64/Packages
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4

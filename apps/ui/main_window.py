@@ -21,6 +21,7 @@
 
 from pathlib import Path
 
+from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QMainWindow
 
 from apps.core.game_store import load_games
@@ -74,6 +75,8 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
 
+        self._set_window_icon()
+
         self.setWindowTitle("Retro Game Launcher")
         self.resize(760, 480)
 
@@ -86,6 +89,29 @@ class MainWindow(QMainWindow):
 
 
 
+
+    def _set_window_icon(self) -> None:
+        """
+        Alkalmazásikon beállítása a főablakhoz.
+
+        Fejlesztői futtatásnál először a projektben lévő assets/icons mappát
+        próbálja használni. Telepített .deb csomagnál a rendszer ikonmappáját.
+        Ha egyik sem érhető el, akkor témából próbál általános játék ikont kérni.
+
+        """
+
+        icon_candidates = [
+            Path(__file__).resolve().parents[2] / "assets" / "icons" / "game.png",
+            Path(__file__).resolve().parents[2] / "packaging" / "icons" / "retro-game-launcher.png",
+            Path("/usr/share/icons/hicolor/256x256/apps/retro-game-launcher.png"),
+        ]
+
+        for icon_path in icon_candidates:
+            if icon_path.exists():
+                self.setWindowIcon(QIcon(str(icon_path)))
+                return
+
+        self.setWindowIcon(QIcon.fromTheme("applications-games"))
 
 
     def _update_status_bar(self):
