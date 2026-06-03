@@ -54,6 +54,13 @@ jobs:
 
           sudo apt-get update
           sudo apt-get install -y dpkg-dev apt-utils
+      - name: Import GPG signing key
+        env:
+          APT_GPG_PRIVATE_KEY: ${{ secrets.APT_GPG_PRIVATE_KEY }}
+        run: |
+          set -e
+          echo "$APT_GPG_PRIVATE_KEY" | gpg --batch --import
+          gpg --list-secret-keys --keyid-format LONG
 
       # Debian csomag elkészítése.
       # Ez hasonló a build-deb.yml workflow-hoz, de itt a kész csomagból
@@ -181,7 +188,7 @@ jobs:
           # ----- Tömörített Packages index létrehozása.
           gzip -k -f dists/stable/main/binary-amd64/Packages
 
-           # ---- Release fájl generálása.
+          # ---- Release fájl generálása.
           apt-ftparchive \
             -o APT::FTPArchive::Release::Origin="Retro Game Launcher" \
             -o APT::FTPArchive::Release::Label="Retro Game Launcher" \
@@ -191,6 +198,12 @@ jobs:
             -o APT::FTPArchive::Release::Components="main" \
             -o APT::FTPArchive::Release::Description="APT repository for Retro Game Launcher" \
             release dists/stable > dists/stable/Release
+
+          gpg --batch --yes \
+            --local-user F68E5E281A6FDF11 \
+            --clearsign \
+            --output dists/stable/InRelease \
+            dists/stable/Release
 
 
       # A repo mappa becsomagolása GitHub Pages artifactként.
