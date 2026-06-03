@@ -1,13 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <component type="desktop-application">
-  <id>retro-game-launcher.desktop</id>
-
+  <id>io.github.szabogergely26.RetroGameLauncher</id>
   <name>Retro Game Launcher</name>
   <summary>Egyszerű indítófelület retro játékokhoz</summary>
-
   <metadata_license>CC0-1.0</metadata_license>
   <project_license>LicenseRef-proprietary</project_license>
-
   <description>
     <p>
       A Retro Game Launcher egy egyszerű grafikus indítófelület DOSBox, Wine
@@ -18,25 +15,21 @@
       indíthatók Linux alatt.
     </p>
   </description>
-
   <launchable type="desktop-id">retro-game-launcher.desktop</launchable>
-
   <categories>
     <category>Game</category>
   </categories>
-
   <url type="homepage">https://github.com/szabogergely26/Retro-Game-Launcher</url>
   <url type="bugtracker">https://github.com/szabogergely26/Retro-Game-Launcher/issues</url>
-
-  <developer_name>Gergely Szabó</developer_name>
-
+  <developer id="io.github.szabogergely26">
+    <name>Gergely Szabó</name>
+  </developer>
   <releases>
-    <release version="0.1.6" date="2026-06-03">
+    <release version="0.1.7" date="2026-06-03">
       <description>
         <p>AppStream metaadat hozzáadása a grafikus szoftverközpontok támogatásához.</p>
       </description>
     </release>
   </releases>
-
-  <content_rating type="oars-1.1" />
+  <content_rating type="oars-1.1"/>
 </component>
