@@ -67,7 +67,7 @@ jobs:
           set -e
 
           PACKAGE_NAME="retro-game-launcher"
-          VERSION="0.1.0"
+          VERSION="0.1.3"
           BUILD_DIR="build/${PACKAGE_NAME}_${VERSION}_all"
 
           dpkg-deb --build "${BUILD_DIR}"
