@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <component type="desktop-application">
-  <id>io.github.szabogergely26.RetroGameLauncher</id>
+  <id>retro-game-launcher.desktop</id>
   <name>Retro Game Launcher</name>
   <summary>Egyszerű indítófelület retro játékokhoz</summary>
   <metadata_license>CC0-1.0</metadata_license>
