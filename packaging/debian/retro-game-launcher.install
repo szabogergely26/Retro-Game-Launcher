@@ -2,6 +2,5 @@ main.py usr/share/retro-game-launcher/
 requirements.txt usr/share/retro-game-launcher/
 apps usr/share/retro-game-launcher/
 packaging/linux/retro-game-launcher usr/bin/
-packaging/debian/retro-game-launcher.desktop usr/share/applications/
-
-packaging/debian/retro-game-launcher.metainfo.xml usr/share/metainfo/
+packaging/debian/io.github.szabogergely26.RetroGameLauncher.desktop usr/share/applications/
+packaging/debian/io.github.szabogergely26.RetroGameLauncher.metainfo.xml usr/share/metainfo/
