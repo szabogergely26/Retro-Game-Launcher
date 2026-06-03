@@ -41,7 +41,7 @@ jobs:
 
           # Aktuális csomagverzió.
           # Frissítés teszteléséhez ezt mindig emelni kell.
-          VERSION="0.1.9"
+          VERSION="0.1.10"
 
           # Ide épül fel a Debian csomag könyvtárszerkezete.
           BUILD_DIR="build/${PACKAGE_NAME}_${VERSION}_all"
