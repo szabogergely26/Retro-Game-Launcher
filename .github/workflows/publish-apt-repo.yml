@@ -53,7 +53,7 @@ jobs:
           set -e
 
           sudo apt-get update
-          sudo apt-get install -y dpkg-dev
+          sudo apt-get install -y dpkg-dev apt-utils
 
       # Debian csomag elkészítése.
       # Ez hasonló a build-deb.yml workflow-hoz, de itt a kész csomagból
@@ -174,12 +174,16 @@ jobs:
           # Packages index generálása.
           cd repo
 
-          # Architecture: all csomagot generálunk, de jelenleg binary-amd64 index alatt szolgáljuk ki,
+          # --- Architecture: all csomagot generálunk, de jelenleg binary-amd64 index alatt szolgáljuk ki,
           # mert ezt már az APT forrásod működően használja.
           dpkg-scanpackages --arch all pool /dev/null > dists/stable/main/binary-amd64/Packages
 
-          # Tömörített Packages index létrehozása.
+          # ----- Tömörített Packages index létrehozása.
           gzip -k -f dists/stable/main/binary-amd64/Packages
+
+           # ---- Release fájl generálása.
+          apt-ftparchive release dists/stable > dists/stable/Release
+
 
       # A repo mappa becsomagolása GitHub Pages artifactként.
       - name: Create GitHub Pages artifact
