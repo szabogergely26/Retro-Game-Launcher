@@ -30,7 +30,7 @@ jobs:
           # Alap csomagadatok.
           PACKAGE_NAME="retro-game-launcher"
           # Ha frissíted az alkalmazást, ne felejts verziószámot emelni!
-          VERSION="0.1.5"
+          VERSION="0.1.6"
           BUILD_DIR="build/${PACKAGE_NAME}_${VERSION}_all"
 
           # Korábbi build törlése, majd a Debian csomag könyvtárainak létrehozása.
@@ -40,6 +40,7 @@ jobs:
           mkdir -p "${BUILD_DIR}/usr/bin"
           mkdir -p "${BUILD_DIR}/usr/share/applications"
           mkdir -p "${BUILD_DIR}/usr/share/icons/hicolor/256x256/apps"
+          mkdir -p "${BUILD_DIR}/usr/share/metainfo"
 
           # Programfájlok bemásolása a csomag /usr/share alatti saját mappájába.
           cp -r apps "${BUILD_DIR}/usr/share/${PACKAGE_NAME}/"
@@ -52,6 +53,8 @@ jobs:
           cp packaging/linux/retro-game-launcher "${BUILD_DIR}/usr/bin/retro-game-launcher"
           cp packaging/icons/retro-game-launcher.png \
             "${BUILD_DIR}/usr/share/icons/hicolor/256x256/apps/retro-game-launcher.png"
+          cp packaging/debian/retro-game-launcher.metainfo.xml \
+            "${BUILD_DIR}/usr/share/metainfo/retro-game-launcher.metainfo.xml"
 
           # Jogosultságok beállítása.
           # A wrapper futtatható, a metadata és ikon fájlok olvashatóak legyenek.
@@ -60,6 +63,7 @@ jobs:
           chmod 644 "${BUILD_DIR}/DEBIAN/control"
           chmod 644 "${BUILD_DIR}/usr/share/applications/retro-game-launcher.desktop"
           chmod 644 "${BUILD_DIR}/usr/share/icons/hicolor/256x256/apps/retro-game-launcher.png"
+          chmod 644 "${BUILD_DIR}/usr/share/metainfo/retro-game-launcher.metainfo.xml"
 
       # A .deb csomag elkészítése az előkészített könyvtárból.
       - name: Build deb package
@@ -67,7 +71,7 @@ jobs:
           set -e
 
           PACKAGE_NAME="retro-game-launcher"
-          VERSION="0.1.5"
+          VERSION="0.1.6"
           BUILD_DIR="build/${PACKAGE_NAME}_${VERSION}_all"
 
           dpkg-deb --build "${BUILD_DIR}"

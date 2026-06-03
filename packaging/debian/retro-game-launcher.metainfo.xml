@@ -31,7 +31,7 @@
   <developer_name>Gergely Szabó</developer_name>
 
   <releases>
-    <release version="0.1.5" date="2026-06-03">
+    <release version="0.1.6" date="2026-06-03">
       <description>
         <p>AppStream metaadat hozzáadása a grafikus szoftverközpontok támogatásához.</p>
       </description>
