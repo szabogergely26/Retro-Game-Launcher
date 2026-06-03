@@ -59,7 +59,7 @@ jobs:
           # Új frissítés teszteléséhez ezt a verziót emelni kell.
           # Példa: 0.1.1 -> 0.1.2
           PACKAGE_NAME="retro-game-launcher"
-          VERSION="0.1.2"
+          VERSION="0.1.3"
           BUILD_DIR="build/${PACKAGE_NAME}_${VERSION}_all"
 
           # Korábbi build és repo mappák törlése.
