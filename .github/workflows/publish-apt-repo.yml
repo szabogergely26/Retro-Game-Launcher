@@ -182,7 +182,15 @@ jobs:
           gzip -k -f dists/stable/main/binary-amd64/Packages
 
            # ---- Release fájl generálása.
-          apt-ftparchive release dists/stable > dists/stable/Release
+          apt-ftparchive \
+            -o APT::FTPArchive::Release::Origin="Retro Game Launcher" \
+            -o APT::FTPArchive::Release::Label="Retro Game Launcher" \
+            -o APT::FTPArchive::Release::Suite="stable" \
+            -o APT::FTPArchive::Release::Codename="stable" \
+            -o APT::FTPArchive::Release::Architectures="amd64" \
+            -o APT::FTPArchive::Release::Components="main" \
+            -o APT::FTPArchive::Release::Description="APT repository for Retro Game Launcher" \
+            release dists/stable > dists/stable/Release
 
 
       # A repo mappa becsomagolása GitHub Pages artifactként.
