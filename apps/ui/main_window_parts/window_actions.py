@@ -22,6 +22,7 @@
 
 
 from PySide6.QtWidgets import QMessageBox
+from apps.version_info import ABOUT_DIALOG_VERSION
 
 
 def open_settings(window):
@@ -45,7 +46,7 @@ def show_about(window):
 
     about_text = (
         "Retro Game Launcher\n\n"
-        "Verzió: 0.1.11\n\n"
+        f"Verzió: {ABOUT_DIALOG_VERSION}\n\n"
         "Egyszerű indítófelület DOSBox, Wine és natív Linux játékokhoz.\n\n"
         "Fejlesztés kezdete: 2026.05.25\n\n"
     )

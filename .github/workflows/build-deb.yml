@@ -41,7 +41,7 @@ jobs:
 
           # Aktuális csomagverzió.
           # Frissítés teszteléséhez ezt mindig emelni kell.
-          VERSION="0.1.11"
+          VERSION="$(python -c 'from apps.version_info import BUILD_DEB_YML_VERSION; print(BUILD_DEB_YML_VERSION)')"
 
           # Ide épül fel a Debian csomag könyvtárszerkezete.
           BUILD_DIR="build/${PACKAGE_NAME}_${VERSION}_all"
@@ -96,6 +96,8 @@ jobs:
           # AppStream metainfo bemásolása RDNS fájlnévvel.
           cp "packaging/debian/${APP_ID}.metainfo.xml" \
             "${BUILD_DIR}/usr/share/metainfo/${APP_ID}.metainfo.xml"
+          APPSTREAM_VERSION="$(python -c 'from apps.version_info import APPSTREAM_RELEASE_VERSION; print(APPSTREAM_RELEASE_VERSION)')"
+          sed -i "s/release version=\"[^\"]*\"/release version=\"${APPSTREAM_VERSION}\"/" "${BUILD_DIR}/usr/share/metainfo/${APP_ID}.metainfo.xml"
 
           # Jogosultságok beállítása.
           # A wrapper futtatható legyen.
@@ -123,7 +125,7 @@ jobs:
 
           # Ezeknek egyezniük kell a Prepare package directory részben használt értékekkel.
           PACKAGE_NAME="retro-game-launcher"
-          VERSION="0.1.11"
+          VERSION="$(python -c 'from apps.version_info import BUILD_DEB_YML_VERSION; print(BUILD_DEB_YML_VERSION)')"
 
           # Ebből a könyvtárból készül a .deb fájl.
           BUILD_DIR="build/${PACKAGE_NAME}_${VERSION}_all"

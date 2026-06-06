@@ -4,9 +4,6 @@ Retro Game Launcher
 Az alkalmazás belépési pontja.
 Ez a fájl csak elindítja a PySide6 alkalmazást és megnyitja a főablakot.
 
-
-Aktuális csomagverzió: 0.1.11
-
 Megjegyzés:
 A Debian csomag verziója jelenleg még kézzel van kezelve a GitHub Actions
 workflow fájlokban.
