@@ -15,16 +15,6 @@ A cél nem egy teljes Lutris-klón, hanem egy könnyen átlátható, saját hasz
 
 
 
-
-
-
-## Következő lépések
-  - `GitHub Release alapú .deb terjesztés`
-  - `saját APT repository előkészítése`
-  - `telepítés utáni repository-beállítás a későbbi automatikus frissítésekhez`
-
-
-
 ## Jelenlegi állapot
 
 A projekt jelenleg korai, de már használható prototípus állapotban van.
