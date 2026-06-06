@@ -6,7 +6,6 @@ name: Build deb package
 # Fontos:
 # - PACKAGE_NAME: a Debian csomag neve, ez maradhat egyszerű: retro-game-launcher
 # - APP_ID: az alkalmazás AppStream / desktop / ikon azonosítója
-# - VERSION: új kiadásnál mindig emelni kell
 
 on:
   push:

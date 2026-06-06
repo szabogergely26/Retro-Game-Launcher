@@ -13,7 +13,6 @@ name: Publish APT repository
 # Fontos:
 # - PACKAGE_NAME: a Debian csomag neve, ez maradhat retro-game-launcher
 # - APP_ID: az alkalmazás AppStream / desktop / ikon azonosítója
-# - VERSION: új kiadásnál mindig emelni kell
 
 on:
   push:
