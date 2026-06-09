@@ -31,7 +31,11 @@ from apps.core.game_store import load_games
 from apps.ui.main_window_parts.menus import setup_menus
 from apps.ui.main_window_parts.statusbar import setup_status_bar
 from apps.ui.main_window_parts.central_view import setup_central_view
-from apps.ui.main_window_parts.game_list import reload_games
+from apps.ui.main_window_parts.game_list import (
+    reload_games,
+    setup_game_list_context_menu,
+
+)
 
 from apps.ui.main_window_parts.game_actions import (
     open_add_game_dialog,
@@ -43,6 +47,7 @@ from apps.ui.main_window_parts.game_actions import (
     export_games,
     import_games,
     clear_games,
+    properties_selected_game,
 )
 
 from apps.ui.main_window_parts.game_helpers import (
@@ -84,7 +89,7 @@ class MainWindow(QMainWindow):
         setup_status_bar(self)
         setup_central_view(self)
 
-
+        setup_game_list_context_menu(self)
 
 
 
@@ -206,6 +211,8 @@ class MainWindow(QMainWindow):
 
 
 
+    def _properties_selected_game(self):
+        properties_selected_game(self)
 
 
 

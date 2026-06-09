@@ -18,7 +18,9 @@
 
 
 
-from PySide6.QtWidgets import QPushButton, QTableWidgetItem
+from PySide6.QtCore import Qt
+from PySide6.QtGui import QAction
+from PySide6.QtWidgets import QMenu, QPushButton, QTableWidgetItem
 
 from apps.core.game_store import load_games
 from apps.ui.main_window_parts.game_helpers import game_type_label
@@ -61,3 +63,44 @@ def reload_games(window):
         window.games_table.setCellWidget(row, 2, launch_button)
 
     window._update_status_bar()
+
+
+
+
+
+def setup_game_list_context_menu(window):
+    """
+    Jobbklikkes menü beállítása a játéklistához.
+    """
+
+    window.games_table.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
+    window.games_table.customContextMenuRequested.connect(
+        lambda position: show_game_list_context_menu(window, position)
+    )
+
+
+
+
+
+def show_game_list_context_menu(window, position):
+    """
+    Jobbklikkes menü megjelenítése a játéklista adott során.
+    """
+
+    row = window.games_table.rowAt(position.y())
+
+    if row < 0:
+        return
+
+    if row >= len(window.games):
+        return
+
+    window.games_table.selectRow(row)
+
+    menu = QMenu(window)
+
+    properties_action = QAction("Tulajdonságok...", window)
+    properties_action.triggered.connect(window._properties_selected_game)
+    menu.addAction(properties_action)
+
+    menu.exec(window.games_table.viewport().mapToGlobal(position))

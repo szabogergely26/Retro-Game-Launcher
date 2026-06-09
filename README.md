@@ -10,7 +10,6 @@ A cél nem egy teljes Lutris-klón, hanem egy könnyen átlátható, saját hasz
 
 ## Következő lépések
   - `GitHub Release alapú .deb terjesztés`
-  - `saját APT repository előkészítése`
   - `telepítés utáni repository-beállítás a későbbi automatikus frissítésekhez`
 
 
@@ -25,11 +24,13 @@ A jelenleg működő fő funkciók:
 - felvett játékok táblázatos megjelenítése
 - játék hozzáadása varázslóval
 - játék neve, indítófájlja, ikonja és indítási típusa megadható
+
 - támogatott indítási típusok:
   - natív Linux indítás
   - DOSBox
   - Wine
   - egyedi parancs előkészítve / későbbi bővítésre
+
 - játék indítása a listából
 - játék indítása dupla kattintással
 - játék eltávolítása a launcher listából
@@ -37,9 +38,16 @@ A jelenleg működő fő funkciók:
 - létrehozott `.desktop` fájlok törlése játék eltávolításakor
 - játéklista automatikus mentése helyi JSON fájlba
 - játéklista automatikus betöltése induláskor
+- játék tulajdonságainak módosítása külön Tulajdonságok ablakban
+- játék neve, elérési útja és ikonja utólag módosítható
+- indítási típus megjelenítése csak olvasható mezőként a Tulajdonságok ablakban
+- Tulajdonságok ablak elérhető a Fájl menüből és jobb kattintással a játéklistán
+
+
 - `Fájl → Játéklista mentése...`
 - `Fájl → Játéklista betöltése...`
 - `Fájl → Játéklista törlése...`
+
 - állapotsor játékdarabszámmal és méretadatokkal
 - `Súgó → Névjegy`
 - modulokra bontott főablak-kód
@@ -102,6 +110,11 @@ python main.py
 7. Döntsd el, készüljön-e menübejegyzés vagy asztali ikon.
 8. A játék megjelenik a launcher listájában.
 9. Az **Indítás** gombbal vagy dupla kattintással elindítható.
+10. A játék utólag módosítható a **Fájl → Tulajdonságok...** menüponttal vagy a játéklistán jobb kattintással.
+11. A Tulajdonságok ablakban módosítható a játék neve, elérési útja és ikonja.
+12. Az indítás típusa ebben az ablakban csak megjelenik, nem módosítható.
+
+
 
 ## Játéklista mentése és visszaállítása
 
@@ -136,6 +149,7 @@ Retro-Game-Launcher/
 │   └── ui/
 │       ├── add_game_wizard.py
 │       ├── edit_game_dialog.py
+|       ├── game_properties_dialog.py
 │       ├── launcher_form.py
 │       ├── main_window.py
 │       └── main_window_parts/
@@ -155,8 +169,8 @@ Retro-Game-Launcher/
 
 Következő tervezett lépések:
 
-- játék szerkesztési funkció visszahozása
-- `.desktop` fájl újragenerálása játék módosítása után
+
+- `.desktop` fájlok frissítésének finomítása játék módosítása után
 - játékkártyás nézet kialakítása
 - játékborítók / képek támogatása
 - sötét téma

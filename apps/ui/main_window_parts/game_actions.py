@@ -25,7 +25,12 @@ import subprocess
 from pathlib import Path
 
 
-from PySide6.QtWidgets import QFileDialog, QMessageBox, QWizard
+from PySide6.QtWidgets import (
+    QDialog,
+    QFileDialog,
+    QMessageBox,
+    QWizard
+)
 
 from apps.core.desktop_writer import (
     create_menu_desktop_launcher,
@@ -40,7 +45,7 @@ from apps.core.game_store import (
 )
 
 from apps.ui.add_game_wizard import AddGameWizard
-
+from apps.ui.game_properties_dialog import GamePropertiesDialog
 
 
 
@@ -125,6 +130,107 @@ def selected_game(window):
         return None
 
     return window.games[row]
+
+
+
+
+
+def properties_selected_game(window):
+    """
+    Megnyitja a kijelölt játék Tulajdonságok ablakát.
+
+    Módosítható:
+    - név
+    - elérési út
+    - ikon
+
+    Nem módosítható:
+    - indítás típusa
+
+    Opcionálisan létrehozható:
+    - asztali parancsikon
+    - alkalmazásmenü parancsikon
+    """
+
+    game = window._selected_game()
+
+    if game is None:
+        QMessageBox.information(
+            window,
+            "Nincs kijelölés",
+            "Nincs kijelölt játék.",
+        )
+        return
+
+    if not game:
+        QMessageBox.information(
+            window,
+            "Nincs szerkeszthető játék",
+            "Ez nem valódi játékbejegyzés.",
+        )
+        return
+
+    row = window.games_table.currentRow()
+
+    if row < 0 or row >= len(window.games):
+        QMessageBox.information(
+            window,
+            "Nincs kijelölés",
+            "Nincs kijelölt játék.",
+        )
+        return
+
+    dialog = GamePropertiesDialog(game, parent=window)
+
+    if dialog.exec() != QDialog.Accepted:
+        return
+
+    updated_game = dialog.data()
+
+    if dialog.should_create_menu_shortcut():
+        desktop_path = create_menu_desktop_launcher(
+            name=updated_game["name"],
+            executable_path=updated_game["executable_path"],
+            icon_path=updated_game.get("icon_path", ""),
+            launcher_type=updated_game.get("type", "native"),
+        )
+
+        updated_game["desktop_path"] = str(desktop_path)
+
+    if dialog.should_create_desktop_shortcut():
+        desktop_icon_path = create_desktop_icon_launcher(
+            name=updated_game["name"],
+            executable_path=updated_game["executable_path"],
+            icon_path=updated_game.get("icon_path", ""),
+            launcher_type=updated_game.get("type", "native"),
+        )
+
+        updated_game["desktop_icon_path"] = str(desktop_icon_path)
+
+    window.games[row] = updated_game
+    save_games(window.games)
+
+    subprocess.run(
+        ["update-desktop-database", str(Path.home() / ".local/share/applications")],
+        check=False,
+    )
+
+    window._reload_games()
+
+    QMessageBox.information(
+        window,
+        "Tulajdonságok mentve",
+        f"A játék tulajdonságai frissítve lettek:\n\n{updated_game.get('name', '')}",
+    )
+
+
+
+
+
+
+
+
+
 
 
 def delete_desktop_file(window, file_path, error_title):

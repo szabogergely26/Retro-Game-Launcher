@@ -36,6 +36,12 @@ def setup_menus(window):
 
     file_menu.addSeparator()
 
+    properties_action = QAction("Tulajdonságok...", window)
+    properties_action.triggered.connect(window._properties_selected_game)
+    file_menu.addAction(properties_action)
+
+    file_menu.addSeparator()
+
     clear_games_action = file_menu.addAction("Játéklista törlése...")
     clear_games_action.triggered.connect(window._clear_games)
 
