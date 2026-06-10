@@ -22,8 +22,7 @@
 
 
 from PySide6.QtWidgets import QMessageBox
-from apps.version_info import ABOUT_DIALOG_VERSION
-
+from apps.version_info import CURRENT_STATE
 
 def open_settings(window):
     """
@@ -42,11 +41,13 @@ def open_settings(window):
 def show_about(window):
     """
     Névjegy ablak megjelenítése.
+    Megjegyzés: új bekezdéshez használj dupla sortörést: \\n\\n
     """
 
     about_text = (
         "Retro Game Launcher\n\n"
-        f"Verzió: {ABOUT_DIALOG_VERSION}\n\n"
+        "Fejlesztői verzió - Rolling\n\n"
+        f"Aktuális állapot: {CURRENT_STATE}\n\n"
         "Egyszerű indítófelület DOSBox, Wine és natív Linux játékokhoz.\n\n"
         "Fejlesztés kezdete: 2026.05.25\n\n"
     )

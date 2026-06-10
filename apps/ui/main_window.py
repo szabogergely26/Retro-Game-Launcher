@@ -85,7 +85,7 @@ class MainWindow(QMainWindow):
 
         self._set_window_icon()
 
-        self.setWindowTitle("Retro Game Launcher")
+        self.setWindowTitle("Retro Game Launcher - Fejlesztői")
         self.resize(760, 480)
 
         setup_menus(self)
