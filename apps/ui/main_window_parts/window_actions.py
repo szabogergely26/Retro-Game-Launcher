@@ -22,8 +22,11 @@
 
 
 from PySide6.QtWidgets import QMessageBox
-from apps.version_info import CURRENT_STATE
 
+from apps.version_info import CURRENT_STATE
+from apps.ui.log_dialog import LogDialog
+
+# Beállítások ablak:
 def open_settings(window):
     """
     Beállítások ablak megnyitása.
@@ -38,6 +41,7 @@ def open_settings(window):
     )
 
 
+# Névjegy ablak:
 def show_about(window):
     """
     Névjegy ablak megjelenítése.
@@ -57,3 +61,13 @@ def show_about(window):
         "Névjegy",
         about_text,
     )
+
+
+# Napló ablak:
+def show_log(window):
+    """
+    Napló ablak megjelenítése.
+    """
+
+    dialog = LogDialog(window)
+    dialog.exec()

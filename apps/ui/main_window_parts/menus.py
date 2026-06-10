@@ -25,8 +25,8 @@ def setup_menus(window):
 
     menubar = window.menuBar()
 
+    # ---- Fájl menü -------
     file_menu = menubar.addMenu("Fájl")
-
 
     save_games_action = file_menu.addAction("Játéklista mentése...")
     save_games_action.triggered.connect(window._export_games)
@@ -47,17 +47,28 @@ def setup_menus(window):
 
     file_menu.addSeparator()
 
+    # Beállítások:
     settings_action = QAction("Beállítások...", window)
     settings_action.triggered.connect(window._open_settings)
     file_menu.addAction(settings_action)
 
     file_menu.addSeparator()
 
+    # Kilépés:
     exit_action = QAction("Kilépés", window)
     exit_action.triggered.connect(window.close)
     file_menu.addAction(exit_action)
 
+
+    # ----- Súgó menü ------
+
     help_menu = menubar.addMenu("Súgó")
+
+    log_action = QAction("Napló megnyitása", window)
+    log_action.triggered.connect(window._show_log)
+    help_menu.addAction(log_action)
+
+    help_menu.addSeparator()
 
     about_action = QAction("Névjegy", window)
     about_action.triggered.connect(window._show_about)

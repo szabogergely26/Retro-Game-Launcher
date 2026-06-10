@@ -60,6 +60,7 @@ from apps.ui.main_window_parts.game_helpers import (
 from apps.ui.main_window_parts.window_actions import (
     open_settings,
     show_about,
+    show_log,
 )
 
 
@@ -306,7 +307,7 @@ class MainWindow(QMainWindow):
 
 
 
-
+    # Beállítások:
     def _open_settings(self):
         """
         Beállítások ablak megnyitása.
@@ -316,10 +317,18 @@ class MainWindow(QMainWindow):
 
 
 
-
+    # Névjegy:
     def _show_about(self):
         """
         Névjegy ablak megjelenítése.
         """
 
         show_about(self)
+
+    # Napló:
+    def _show_log(self):
+        """
+        Napló ablak megjelenítése.
+        """
+
+        show_log(self)
