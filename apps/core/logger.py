@@ -7,7 +7,7 @@ import logging
 from pathlib import Path
 
 
-LOG_DIR = Path("logs")
+LOG_DIR = Path("/tmp/Retro-Game_Launcher/Log")
 LOG_FILE = LOG_DIR / "retro-game-launcher.log"
 
 
