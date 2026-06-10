@@ -1,11 +1,15 @@
+# app/core/logging.py
+# ----------------------
+
 from __future__ import annotations
 
 import logging
 from pathlib import Path
 
 
-LOG_DIR = Path.home() / ".local" / "state" / "retro-game-launcher"
+LOG_DIR = Path("logs")
 LOG_FILE = LOG_DIR / "retro-game-launcher.log"
+
 
 
 def setup_logging() -> None:
