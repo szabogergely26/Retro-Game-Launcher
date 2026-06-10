@@ -20,12 +20,18 @@ import sys
 from PySide6.QtWidgets import QApplication
 
 from apps.ui.main_window import MainWindow
-
+from apps.core.logger import setup_logging, get_logger
 
 def main():
     """
     QApplication létrehozása és a főablak indítása.
     """
+
+    # Naplózás:
+    setup_logging()
+    logger = get_logger(__name__)
+    logger.info("Retro Game Launcher indítása")
+
 
     # Qt alkalmazáspéldány létrehozása.
     app = QApplication(sys.argv)
@@ -37,8 +43,14 @@ def main():
     window.show()
 
     # Qt eseményciklus indítása.
-    sys.exit(app.exec())
+    # Ez addig fut, míg az app be nem záródik.
+    exit_code = app.exec()
+
+    logger.info("Retro Game Launcher bezárása")
+
+    return exit_code
+
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())

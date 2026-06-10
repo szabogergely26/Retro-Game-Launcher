@@ -47,9 +47,12 @@ from apps.core.game_store import (
 from apps.ui.add_game_wizard import AddGameWizard
 from apps.ui.game_properties_dialog import GamePropertiesDialog
 
+from apps.core.logger import get_logger
 
 
 
+
+logger = get_logger(__name__)
 
 def open_add_game_dialog(window):
     """
@@ -196,6 +199,27 @@ def properties_selected_game(window):
         )
 
         updated_game["desktop_path"] = str(desktop_path)
+    else:
+        menu_shortcut_path = str(game.get("desktop_path", "") or "").strip()
+
+        if menu_shortcut_path:
+            try:
+                menu_shortcut = Path(menu_shortcut_path).expanduser()
+
+                if menu_shortcut.exists():
+                    menu_shortcut.unlink()
+
+                updated_game["desktop_path"] = ""
+            except OSError as error:
+                QMessageBox.warning(
+                    window,
+                    "Menü parancsikon törlése sikertelen",
+                    f"Nem sikerült törölni az alkalmazásmenü parancsikont:\n\n{error}",
+                )
+                return
+
+
+
 
     if dialog.should_create_desktop_shortcut():
         desktop_icon_path = create_desktop_icon_launcher(
@@ -217,10 +241,9 @@ def properties_selected_game(window):
 
     window._reload_games()
 
-    QMessageBox.information(
-        window,
-        "Tulajdonságok mentve",
-        f"A játék tulajdonságai frissítve lettek:\n\n{updated_game.get('name', '')}",
+    window.statusBar().showMessage(
+        f"Tulajdonságok mentve: {updated_game.get('name', '')}",
+        5000,
     )
 
 
@@ -408,7 +431,7 @@ def launch_game(window, game):
     Elindítja a megadott játékot.
     """
 
-    print("DEBUG GAME:", game)
+    logger.debug("Játék indítási adatai: %s", game)
 
     if not game:
         return

@@ -131,11 +131,19 @@ class GamePropertiesDialog(QDialog):
         self.browse_icon_button = QPushButton("Ikon módosítása...")
         self.browse_icon_button.clicked.connect(self._choose_icon)
 
+        # checkbox szöveg, és kezdő állapot:
         self.create_desktop_shortcut_checkbox = QCheckBox(
-            "Parancsikon létrehozása az asztalra"
+            "Parancsikon az asztalon"
         )
+        self.create_desktop_shortcut_checkbox.setChecked(
+            self._shortcut_exists(game, "desktop_icon_path")
+        )
+
         self.create_menu_shortcut_checkbox = QCheckBox(
-            "Parancsikon létrehozása az alkalmazásmenübe"
+            "Megjelenítés az alkalmazásmenüben"
+        )
+        self.create_menu_shortcut_checkbox.setChecked(
+            self._shortcut_exists(game, "desktop_path")
         )
 
         self._update_icon_preview()
@@ -204,6 +212,23 @@ class GamePropertiesDialog(QDialog):
 
     def should_create_desktop_shortcut(self) -> bool:
         return self.create_desktop_shortcut_checkbox.isChecked()
+
+
+
+    @staticmethod
+    def _shortcut_exists(game: dict, *keys: str) -> bool:
+        for key in keys:
+            value = str(game.get(key, "") or "").strip()
+
+            if not value:
+                continue
+
+            if Path(value).expanduser().exists():
+                return True
+
+        return False
+
+
 
     def should_create_menu_shortcut(self) -> bool:
         return self.create_menu_shortcut_checkbox.isChecked()

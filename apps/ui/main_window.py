@@ -63,12 +63,15 @@ from apps.ui.main_window_parts.window_actions import (
 )
 
 
+
+from apps.core.logger import get_logger
+
 # --- Importok vége
 
 
 
 
-
+logger = get_logger(__name__)
 
 
 
@@ -132,12 +135,11 @@ class MainWindow(QMainWindow):
             game_size = self._game_size_bytes(game)
             total_size += game_size
 
-            print(
-                "DEBUG SIZE:",
-                game.get("name", "Névtelen játék"),
-                self._format_size(game_size),
-                game.get("executable_path", ""),
-            )
+        logger.debug(
+            "Státuszsor frissítve: játékok=%s, összméret=%s",
+            games_count,
+            self._format_size(total_size),
+        )
 
         self.status_games_count_label.setText(f"{games_count} játék")
         self.status_total_size_label.setText(
