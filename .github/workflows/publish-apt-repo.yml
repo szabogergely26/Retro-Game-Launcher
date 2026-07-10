@@ -53,6 +53,7 @@ jobs:
 
           sudo apt-get update
           sudo apt-get install -y dpkg-dev apt-utils
+
       - name: Import GPG signing key
         env:
           APT_GPG_PRIVATE_KEY: ${{ secrets.APT_GPG_PRIVATE_KEY }}
@@ -104,10 +105,24 @@ jobs:
           # AppStream / szoftverközpont metaadat helye.
           mkdir -p "${BUILD_DIR}/usr/share/metainfo"
 
+          # Az APT szoftverforrás leírófájljának helye.
+          mkdir -p "${BUILD_DIR}/etc/apt/sources.list.d"
+
+          # Az APT repository nyilvános aláírókulcsának helye.
+          mkdir -p "${BUILD_DIR}/usr/share/keyrings"
+
           # Programfájlok bemásolása a csomag /usr/share alatti saját mappájába.
           cp -r apps "${BUILD_DIR}/usr/share/${PACKAGE_NAME}/"
           cp main.py "${BUILD_DIR}/usr/share/${PACKAGE_NAME}/"
           cp requirements.txt "${BUILD_DIR}/usr/share/${PACKAGE_NAME}/"
+
+          # A Retro Game Launcher APT szoftverforrásának telepítése.
+          cp packaging/debian/retro-game-launcher.sources \
+            "${BUILD_DIR}/etc/apt/sources.list.d/retro-game-launcher.sources"
+
+          # A repository nyilvános aláírókulcsának telepítése.
+          cp packaging/keys/retro-game-launcher-archive-keyring.gpg \
+            "${BUILD_DIR}/usr/share/keyrings/retro-game-launcher-archive-keyring.gpg"
 
           # Debian control fájl bemásolása.
           cp packaging/debian/control.template "${BUILD_DIR}/DEBIAN/control"
@@ -155,8 +170,15 @@ jobs:
           # Az AppStream metainfo sima olvasható XML fájl.
           chmod 644 "${BUILD_DIR}/usr/share/metainfo/${APP_ID}.metainfo.xml"
 
+          # Az APT szoftverforrás és a nyilvános keyring olvasható legyen.
+          chmod 644 "${BUILD_DIR}/etc/apt/sources.list.d/retro-game-launcher.sources"
+          chmod 644 "${BUILD_DIR}/usr/share/keyrings/retro-game-launcher-archive-keyring.gpg"
+
+          # A csomag könyvtárai szabványos jogosultsággal készüljenek.
+          find "${BUILD_DIR}" -type d -exec chmod 755 {} +
+
           # .deb csomag elkészítése.
-          dpkg-deb --build "${BUILD_DIR}"
+          dpkg-deb --root-owner-group --build "${BUILD_DIR}"
 
       # Minimál APT repository struktúra létrehozása.
       #

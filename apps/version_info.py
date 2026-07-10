@@ -6,7 +6,7 @@ A .deb build, az APT repo workflow, az AppStream metainfo,
 a Névjegy ablak és a dokumentációs verzió ebből az egy értékből dolgozik.
 """
 
-APP_VERSION = "0.2.13"
+APP_VERSION = "0.2.14"
 
 BUILD_DEB_YML_VERSION = APP_VERSION
 PUBLISH_APT_REPO_YML_VERSION = APP_VERSION

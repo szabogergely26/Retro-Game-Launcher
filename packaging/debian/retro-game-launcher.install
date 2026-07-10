@@ -4,3 +4,5 @@ apps usr/share/retro-game-launcher/
 packaging/linux/retro-game-launcher usr/bin/
 packaging/debian/io.github.szabogergely26.RetroGameLauncher.desktop usr/share/applications/
 packaging/debian/io.github.szabogergely26.RetroGameLauncher.metainfo.xml usr/share/metainfo/
+packaging/debian/retro-game-launcher.sources etc/apt/sources.list.d/
+packaging/keys/retro-game-launcher-archive-keyring.gpg usr/share/keyrings/
