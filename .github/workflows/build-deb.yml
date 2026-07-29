@@ -3,9 +3,8 @@ name: Build deb package
 # Ez a workflow automatikusan lefut, ha main vagy dev ágra push történik.
 # Kézzel is indítható a GitHub Actions felületéről a workflow_dispatch miatt.
 #
-# Fontos:
-# - PACKAGE_NAME: a Debian csomag neve, ez maradhat egyszerű: retro-game-launcher
-# - APP_ID: az alkalmazás AppStream / desktop / ikon azonosítója
+# A tényleges csomagolási logika a packaging/build_deb.sh szkriptben van,
+# hogy a build-deb.yml és a publish-apt-repo.yml ugyanazt a logikát használja.
 
 on:
   push:
@@ -20,117 +19,16 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # A repository tartalmának letöltése a GitHub Actions futtatókörnyezetbe.
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # A Debian csomag mappaszerkezetének előkészítése.
-      # Itt építjük fel azt a könyvtárat, amiből a dpkg-deb .deb fájlt készít.
-      - name: Prepare package directory
+      - name: Make build script executable
         run: |
-          set -e
+          chmod +x packaging/build_deb.sh
 
-          # A Debian csomag neve.
-          # Ez marad kisbetűs, kötőjeles csomagnév.
-          PACKAGE_NAME="retro-game-launcher"
-
-          # Az alkalmazás modern AppStream / desktop azonosítója.
-          # Ezt használja a .desktop fájl neve, a metainfo fájl neve és az ikon neve is.
-          APP_ID="io.github.szabogergely26.RetroGameLauncher"
-
-          # Aktuális csomagverzió.
-          # Frissítés teszteléséhez ezt mindig emelni kell.
-          VERSION="$(python -c 'from apps.version_info import BUILD_DEB_YML_VERSION; print(BUILD_DEB_YML_VERSION)')"
-
-          # Ide épül fel a Debian csomag könyvtárszerkezete.
-          BUILD_DIR="build/${PACKAGE_NAME}_${VERSION}_all"
-
-          # Korábbi build törlése.
-          rm -rf build
-
-          # Debian vezérlőfájlok helye.
-          mkdir -p "${BUILD_DIR}/DEBIAN"
-
-          # Az alkalmazás saját programfájljainak helye.
-          mkdir -p "${BUILD_DIR}/usr/share/${PACKAGE_NAME}"
-
-          # A parancssori indító/wrapper helye.
-          mkdir -p "${BUILD_DIR}/usr/bin"
-
-          # A grafikus menüindító .desktop fájl helye.
-          mkdir -p "${BUILD_DIR}/usr/share/applications"
-
-          # Az alkalmazásikon helye.
-          mkdir -p "${BUILD_DIR}/usr/share/icons/hicolor/256x256/apps"
-
-          # AppStream / szoftverközpont metaadat helye.
-          mkdir -p "${BUILD_DIR}/usr/share/metainfo"
-
-          # Programfájlok bemásolása a csomag /usr/share alatti saját mappájába.
-          cp -r apps "${BUILD_DIR}/usr/share/${PACKAGE_NAME}/"
-          cp main.py "${BUILD_DIR}/usr/share/${PACKAGE_NAME}/"
-          cp requirements.txt "${BUILD_DIR}/usr/share/${PACKAGE_NAME}/"
-
-          # Debian control fájl bemásolása.
-          cp packaging/debian/control.template "${BUILD_DIR}/DEBIAN/control"
-
-          # A control fájlban lévő Version mező átírása az aktuális workflow verzióra.
-          # Így a control.template maradhat sablon, nem kell kézzel mindig ott is verziót emelni.
-          sed -i "s/^Version: .*/Version: ${VERSION}/" "${BUILD_DIR}/DEBIAN/control"
-
-          # .desktop indító bemásolása RDNS fájlnévvel.
-          cp "packaging/debian/${APP_ID}.desktop" \
-            "${BUILD_DIR}/usr/share/applications/${APP_ID}.desktop"
-
-          # Parancssori wrapper bemásolása.
-          # Ez marad retro-game-launcher, ezért az Exec=retro-game-launcher továbbra is jó.
-          cp packaging/linux/retro-game-launcher \
-            "${BUILD_DIR}/usr/bin/retro-game-launcher"
-
-          # Alkalmazásikon bemásolása RDNS néven.
-          # A forrásfájl maradhat retro-game-launcher.png, de telepítéskor az Icon= mezőhöz igazítjuk.
-          cp packaging/icons/retro-game-launcher.png \
-            "${BUILD_DIR}/usr/share/icons/hicolor/256x256/apps/${APP_ID}.png"
-
-          # AppStream metainfo bemásolása RDNS fájlnévvel.
-          cp "packaging/debian/${APP_ID}.metainfo.xml" \
-            "${BUILD_DIR}/usr/share/metainfo/${APP_ID}.metainfo.xml"
-          APPSTREAM_VERSION="$(python -c 'from apps.version_info import APPSTREAM_RELEASE_VERSION; print(APPSTREAM_RELEASE_VERSION)')"
-          sed -i "s/release version=\"[^\"]*\"/release version=\"${APPSTREAM_VERSION}\"/" "${BUILD_DIR}/usr/share/metainfo/${APP_ID}.metainfo.xml"
-
-          # Jogosultságok beállítása.
-          # A wrapper futtatható legyen.
-          chmod 755 "${BUILD_DIR}/usr/bin/retro-game-launcher"
-
-          # A DEBIAN mappa olvasható/futtatható legyen.
-          chmod 755 "${BUILD_DIR}/DEBIAN"
-
-          # A control fájl sima olvasható metaadat.
-          chmod 644 "${BUILD_DIR}/DEBIAN/control"
-
-          # A .desktop fájl sima olvasható metaadat.
-          chmod 644 "${BUILD_DIR}/usr/share/applications/${APP_ID}.desktop"
-
-          # Az ikon sima olvasható fájl.
-          chmod 644 "${BUILD_DIR}/usr/share/icons/hicolor/256x256/apps/${APP_ID}.png"
-
-          # Az AppStream metainfo sima olvasható XML fájl.
-          chmod 644 "${BUILD_DIR}/usr/share/metainfo/${APP_ID}.metainfo.xml"
-
-      # A .deb csomag elkészítése az előkészített könyvtárból.
       - name: Build deb package
         run: |
-          set -e
-
-          # Ezeknek egyezniük kell a Prepare package directory részben használt értékekkel.
-          PACKAGE_NAME="retro-game-launcher"
-          VERSION="$(python -c 'from apps.version_info import BUILD_DEB_YML_VERSION; print(BUILD_DEB_YML_VERSION)')"
-
-          # Ebből a könyvtárból készül a .deb fájl.
-          BUILD_DIR="build/${PACKAGE_NAME}_${VERSION}_all"
-
-          # Debian csomag elkészítése.
-          dpkg-deb --build "${BUILD_DIR}"
+          ./packaging/build_deb.sh
 
       # Az elkészült .deb fájl feltöltése GitHub Actions artifactként.
       # Ez kézi letöltéshez jó, de nem maga az APT szoftverforrás.
