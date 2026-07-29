@@ -42,11 +42,12 @@ def _quote_desktop_arg(value: str) -> str:
     return f'"{escaped}"'
 
 
-def build_exec_command(executable_path: str, launcher_type: str) -> str:
-    """
-    Elkészíti az Exec sort a választott indítási típus alapján.
-    """
-
+def build_exec_command(
+    executable_path: str,
+    launcher_type: str,
+    name: str = "",
+    wine_settings: dict | None = None,
+) -> str:
     executable_path = executable_path.strip()
     launcher_type = launcher_type.strip().lower()
 
@@ -54,7 +55,10 @@ def build_exec_command(executable_path: str, launcher_type: str) -> str:
         return f"dosbox {_quote_desktop_arg(executable_path)} -exit"
 
     if launcher_type == "wine":
-        return f"wine {_quote_desktop_arg(executable_path)}"
+        from apps.core.wine_settings import build_wine_exec_string
+
+        game_stub = {"name": name, "wine_settings": wine_settings or {}}
+        return build_wine_exec_string(game_stub, executable_path, _quote_desktop_arg)
 
     if launcher_type == "custom":
         return executable_path
@@ -68,6 +72,7 @@ def create_menu_desktop_launcher(
     executable_path: str,
     icon_path: str,
     launcher_type: str,
+    wine_settings: dict | None = None,
 ) -> Path:
 
     """
@@ -104,13 +109,16 @@ def create_menu_desktop_launcher(
     desktop_filename = f"{_slugify_name(clean_name)}.desktop"
     desktop_path = APPLICATIONS_DIR / desktop_filename
 
-    exec_command = build_exec_command(clean_executable, launcher_type)
+    exec_command = build_exec_command(
+        clean_executable, launcher_type, name=clean_name, wine_settings=wine_settings
+    )
 
     desktop_lines = [
         "[Desktop Entry]",
         "Type=Application",
         f"Name={clean_name}",
         f"Exec={exec_command}",
+        f"Path={Path(clean_executable).parent}",
         "Terminal=false",
         "Categories=Game;Emulator;",
         "NoDisplay=false",
@@ -138,6 +146,7 @@ def create_desktop_icon_launcher(
     executable_path: str,
     icon_path: str,
     launcher_type: str,
+    wine_settings: dict | None = None,
 ) -> Path:
     """
     .desktop indító létrehozása a felhasználó Asztal mappájába.
@@ -152,7 +161,9 @@ def create_desktop_icon_launcher(
 
     clean_name = name.strip()
     clean_icon = icon_path.strip()
-    exec_command = build_exec_command(executable_path, launcher_type)
+    exec_command = build_exec_command(
+        executable_path, launcher_type, name=clean_name, wine_settings=wine_settings
+    )
 
     desktop_filename = f"{_slugify_name(clean_name)}.desktop"
     desktop_path = desktop_dir / desktop_filename
@@ -162,6 +173,7 @@ def create_desktop_icon_launcher(
         "Type=Application",
         f"Name={clean_name}",
         f"Exec={exec_command}",
+        f"Path={Path(executable_path).parent}",
         "Terminal=false",
         "NoDisplay=false",
         "StartupNotify=true",

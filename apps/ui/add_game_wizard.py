@@ -15,6 +15,8 @@ from PySide6.QtWidgets import (
     QComboBox,
 )
 
+from apps.core.wine_settings import default_wine_settings
+
 
 class IntroPage(QWizardPage):
     def __init__(self, parent=None):
@@ -52,6 +54,17 @@ class GameDataPage(QWizardPage):
         self.runner_combo.addItem("Wine", "wine")
         self.runner_combo.addItem("Egyedi parancs", "custom")
 
+        self._runner_manually_set = False
+        self.runner_combo.activated.connect(self._mark_runner_manually_set)
+
+        self.wine_hint_label = QLabel(
+            "Windows-os (.exe) játéknál a Wine indítás automatikusan "
+            "beállításra kerül, a szükséges beállításokkal együtt - "
+            "ezzel nem kell külön foglalkoznod."
+        )
+        self.wine_hint_label.setWordWrap(True)
+        self.wine_hint_label.hide()
+
         executable_button = QPushButton("Tallózás…")
         executable_button.clicked.connect(self._browse_executable)
 
@@ -78,7 +91,29 @@ class GameDataPage(QWizardPage):
         layout.addRow("Ikonfájl:", icon_row)
         layout.addRow("Indítási típus:", self.runner_combo)
 
+        layout.addRow("", self.wine_hint_label)
+
         self.setLayout(layout)
+
+        self.executable_edit.textChanged.connect(self._maybe_auto_select_wine)
+
+
+    def _mark_runner_manually_set(self, _index):
+        self._runner_manually_set = True
+        self.wine_hint_label.hide()
+
+    def _maybe_auto_select_wine(self, text):
+        if self._runner_manually_set:
+            return
+
+        if text.strip().lower().endswith(".exe"):
+            wine_index = self.runner_combo.findData("wine")
+
+            if wine_index != -1:
+                self.runner_combo.setCurrentIndex(wine_index)
+                self.wine_hint_label.show()
+        else:
+            self.wine_hint_label.hide()
 
     def _browse_executable(self):
         file_path, _ = QFileDialog.getOpenFileName(
@@ -192,13 +227,20 @@ class AddGameWizard(QWizard):
         self.setOption(QWizard.NoBackButtonOnStartPage, True)
 
     def get_game_data(self):
-        return {
+        game_type = self.game_data_page.runner_combo.currentData()
+
+        game_data = {
             "name": self.game_data_page.name_edit.text().strip(),
             "executable_path": self.game_data_page.executable_edit.text().strip(),
             "icon_path": self.game_data_page.icon_edit.text().strip(),
-            "type": self.game_data_page.runner_combo.currentData(),
+            "type": game_type,
             "desktop_path": "",
         }
+
+        if game_type == "wine":
+            game_data["wine_settings"] = default_wine_settings()
+
+        return game_data
 
     def should_create_menu_icon(self):
         return self.finish_page.create_menu_icon_checkbox.isChecked()

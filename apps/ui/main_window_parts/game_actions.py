@@ -50,7 +50,11 @@ from apps.ui.game_properties_dialog import GamePropertiesDialog
 from apps.core.logger import get_logger
 
 
-
+from apps.core.wine_settings import (
+    apply_wine_settings,
+    build_wine_command,
+    wine_env_for_game,
+)
 
 logger = get_logger(__name__)
 
@@ -93,12 +97,28 @@ def open_add_game_dialog(window):
             )
             return
 
+
+    if game_data.get("type") == "wine":
+        try:
+            apply_wine_settings(game_data)
+        except Exception as error:
+            logger.warning("A Wine-beállítások előkészítése nem sikerült: %s", error)
+            QMessageBox.warning(
+                window,
+                "Wine-beállítások",
+                "A játék felvétele sikerült, de a Wine automatikus beállítása "
+                "most nem sikerült (lehet, hogy a Wine nincs telepítve).\n\n"
+                "A játékot ettől még el tudod indítani, csak az automatikus "
+                "beállítások nélkül.",
+            )
+
     if wizard.should_create_menu_icon():
         desktop_path = create_menu_desktop_launcher(
             name=game_data["name"],
             executable_path=game_data["executable_path"],
             icon_path=game_data["icon_path"],
             launcher_type=game_data["type"],
+            wine_settings=game_data.get("wine_settings"),
         )
 
         game_data["desktop_path"] = str(desktop_path)
@@ -109,6 +129,7 @@ def open_add_game_dialog(window):
             executable_path=game_data["executable_path"],
             icon_path=game_data["icon_path"],
             launcher_type=game_data["type"],
+            wine_settings=game_data.get("wine_settings"),
         )
 
         game_data["desktop_icon_path"] = str(desktop_icon_path)
@@ -196,6 +217,7 @@ def properties_selected_game(window):
             executable_path=updated_game["executable_path"],
             icon_path=updated_game.get("icon_path", ""),
             launcher_type=updated_game.get("type", "native"),
+            wine_settings=updated_game.get("wine_settings"),
         )
 
         updated_game["desktop_path"] = str(desktop_path)
@@ -461,17 +483,21 @@ def launch_game(window, game):
         return
 
     if executable_path and Path(executable_path).exists():
+        working_dir = str(Path(executable_path).parent)
+
         if game_type == "dosbox":
-            subprocess.Popen(["dosbox", executable_path])
+            subprocess.Popen(["dosbox", executable_path], cwd=working_dir)
             return
 
         if game_type == "wine":
-            subprocess.Popen(["wine", executable_path])
+            command = build_wine_command(game, executable_path)
+            subprocess.Popen(command, env=wine_env_for_game(game), cwd=working_dir)
             return
 
         if game_type == "native":
-            subprocess.Popen([executable_path])
+            subprocess.Popen([executable_path], cwd=working_dir)
             return
+
 
     QMessageBox.warning(
         window,
