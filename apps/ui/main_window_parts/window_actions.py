@@ -50,7 +50,6 @@ def show_about(window):
 
     about_text = (
         "Retro Game Launcher\n\n"
-        "Fejlesztői verzió - Rolling\n\n"
         f"Aktuális állapot: {CURRENT_STATE}\n\n"
         "Egyszerű indítófelület DOSBox, Wine és natív Linux játékokhoz.\n\n"
         "Fejlesztés kezdete: 2026.05.25\n\n"
