@@ -73,7 +73,7 @@ jobs:
 
           cd repo
 
-          dpkg-scanpackages --arch all pool /dev/null > dists/stable/main/binary-amd64/Packages
+          dpkg-scanpackages pool /dev/null > dists/stable/main/binary-amd64/Packages
           gzip -k -f dists/stable/main/binary-amd64/Packages
 
           apt-ftparchive \
