@@ -4,7 +4,11 @@
 
 A Retro Game Launcher egy egyszerű, PySide6 alapú Linuxos alkalmazás retro játékok kezeléséhez és indításához.
 
-A cél nem egy teljes Lutris-klón, hanem egy könnyen átlátható, saját használatra kényelmes launcher, amellyel DOSBox, Wine és natív Linux játékok vehetők fel egy helyi játéklistába, majd onnan közvetlenül indíthatók.
+> **Megjegyzés az AI-közreműködésről:** A kód nagy része AI (Claude) segítségével
+> készült, emberi tervezés, irányítás és folyamatos ellenőrzés mellett. A
+> funkcionalitásért és a projekt irányáért a szerző felel.
+
+**A cél nem egy teljes Lutris-klón, hanem egy könnyen átlátható, saját használatra kényelmes launcher, amellyel DOSBox, Wine és natív Linux játékok vehetők fel egy helyi játéklistába, majd onnan közvetlenül indíthatók.**
 
 
 
