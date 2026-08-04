@@ -40,6 +40,9 @@ mkdir -p "${BUILD_DIR}/usr/share/applications"
 mkdir -p "${BUILD_DIR}/usr/share/icons/hicolor/256x256/apps"
 mkdir -p "${BUILD_DIR}/usr/share/metainfo"
 
+mkdir -p "${BUILD_DIR}/etc/apt/sources.list.d"
+mkdir -p "${BUILD_DIR}/usr/share/keyrings"
+
 # Programfájlok bemásolása a csomag /usr/share alatti saját mappájába.
 cp -r apps "${BUILD_DIR}/usr/share/${PACKAGE_NAME}/"
 cp main.py "${BUILD_DIR}/usr/share/${PACKAGE_NAME}/"
@@ -67,6 +70,20 @@ cp "packaging/debian/${APP_ID}.metainfo.xml" \
 sed -i "s/release version=\"[^\"]*\"/release version=\"${VERSION}\"/" \
   "${BUILD_DIR}/usr/share/metainfo/${APP_ID}.metainfo.xml"
 
+# APT szoftverforrás és GPG kulcs bemásolása, hogy a csomag telepítése után
+# az apt update azonnal megtalálja a GitHub Pages-en publikált repót.
+cp packaging/debian/retro-game-launcher.sources \
+  "${BUILD_DIR}/etc/apt/sources.list.d/retro-game-launcher.sources"
+
+cp packaging/keys/retro-game-launcher-archive-keyring.gpg \
+  "${BUILD_DIR}/usr/share/keyrings/retro-game-launcher-archive-keyring.gpg"
+
+
+
+
+
+
+
 # Jogosultságok beállítása.
 chmod 755 "${BUILD_DIR}/usr/bin/retro-game-launcher"
 chmod 755 "${BUILD_DIR}/DEBIAN"
@@ -74,6 +91,8 @@ chmod 644 "${BUILD_DIR}/DEBIAN/control"
 chmod 644 "${BUILD_DIR}/usr/share/applications/${APP_ID}.desktop"
 chmod 644 "${BUILD_DIR}/usr/share/icons/hicolor/256x256/apps/${APP_ID}.png"
 chmod 644 "${BUILD_DIR}/usr/share/metainfo/${APP_ID}.metainfo.xml"
+chmod 644 "${BUILD_DIR}/etc/apt/sources.list.d/retro-game-launcher.sources"
+chmod 644 "${BUILD_DIR}/usr/share/keyrings/retro-game-launcher-archive-keyring.gpg"
 
 # .deb csomag elkészítése -- explicit, fix kimeneti fájlnévvel.
 dpkg-deb --build "${BUILD_DIR}" "${OUTPUT_FILE}"
